@@ -1,0 +1,54 @@
+T: 65536
+gc size: 234.085 GB
+garbling time: 5475416 ms
+parallel time: 3.70878e+06 ms
+eval time: 4864928 ms
+parallel time: 4.03174e+06 ms
+T: 65536
+gc size: 249.76 GB
+garbling time: 5475545 ms
+parallel time: 3.71139e+06 ms
+eval time: 3057179 ms
+parallel time: 2.29087e+06 ms
+T: 65536
+gc size: 252.429 GB
+garbling time: 5520042 ms
+parallel time: 3.54423e+06 ms
+eval time: 2964682 ms
+parallel time: 2.19917e+06 ms
+T: 65536
+gc size: 263.315 GB
+garbling time: 5020166 ms
+parallel time: 3.22895e+06 ms
+eval time: 2795312 ms
+parallel time: 2.02801e+06 ms
+T: 65536
+gc size: 287.085 GB
+garbling time: 4860361 ms
+parallel time: 2.81457e+06 ms
+eval time: 2516968 ms
+parallel time: 1.76676e+06 ms
+T: 65536
+gc size: 327.746 GB
+garbling time: 4416712 ms
+parallel time: 2.30599e+06 ms
+eval time: 2164854 ms
+parallel time: 1.44176e+06 ms
+T: 65536
+gc size: 381.481 GB
+garbling time: 3625619 ms
+parallel time: 1.76587e+06 ms
+eval time: 1783733 ms
+parallel time: 1.09858e+06 ms
+T: 65536
+gc size: 448.881 GB
+garbling time: 3170191 ms
+parallel time: 1.23017e+06 ms
+eval time: 1421626 ms
+parallel time: 759894 ms
+T: 65536
+gc size: 606.707 GB
+garbling time: 2565823 ms
+parallel time: 0 ms
+eval time: 637445 ms
+parallel time: 0 ms

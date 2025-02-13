@@ -1,0 +1,59 @@
+T: 1024
+gc size: 1.15382 GB
+stack cost: 0.285382 GB
+tsc stack cost: 0.431305 GB
+T: 2048
+gc size: 3.36887 GB
+stack cost: 0.992014 GB
+tsc stack cost: 1.74611 GB
+T: 4096
+gc size: 7.63377 GB
+stack cost: 2.04334 GB
+tsc stack cost: 1.76819 GB
+T: 8192
+gc size: 20.3459 GB
+stack cost: 6.07397 GB
+tsc stack cost: 7.33014 GB
+T: 16384
+gc size: 45.1984 GB
+stack cost: 12.7055 GB
+tsc stack cost: 7.24463 GB
+T: 32768
+gc size: 115.625 GB
+stack cost: 35.2807 GB
+tsc stack cost: 31.1252 GB
+T: 65536
+gc size: 252.431 GB
+stack cost: 74.285 GB
+tsc stack cost: 30.1816 GB
+T: 131072
+gc size: 623.575 GB
+stack cost: 195.124 GB
+tsc stack cost: 130.524 GB
+T: 262144
+gc size: 1354.03 GB
+stack cost: 411.915 GB
+tsc stack cost: 123.477 GB
+T: 524288
+gc size: 3266.08 GB
+stack cost: 1042.81 GB
+tsc stack cost: 544.223 GB
+T: 1048576
+gc size: 7041.4 GB
+stack cost: 2202.26 GB
+tsc stack cost: 504.906 GB
+T: 2097152
+gc size: 16684.2 GB
+stack cost: 5425.36 GB
+tsc stack cost: 2265.39 GB
+T: 4194304
+gc size: 35742.8 GB
+stack cost: 11450.1 GB
+tsc stack cost: 2063.62 GB
+T: 8388608
+gc size: 83430.9 GB
+stack cost: 27615.7 GB
+tsc stack cost: 9415.56 GB
+T: 16777216
+gc size: 177793 GB
+stack cost: 58212.6 GB
