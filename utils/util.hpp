@@ -13,6 +13,7 @@
 #include <sstream>
 #include <unordered_set>
 #include <vector>
+#include <array>
 
 #include "global.hpp"
 #include "lock.hpp"

@@ -59,7 +59,7 @@ add_library(gramimpl ${COMMON_SOURCES})
 target_link_libraries(gramimpl OpenSSL::SSL OpenSSL::Crypto OpenMP::OpenMP_CXX)
 target_compile_options(gramimpl PRIVATE -maes)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -Wextra -DEMP_CHANNEL_PATH")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -Wextra -Wno-deprecated-declarations -DEMP_CHANNEL_PATH")
 
 # Release build specific flags
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
@@ -69,18 +69,3 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 # Add tests to CTest
 add_test(NAME Test_Basic COMMAND test_basic)
-
-# Cppcheck configuration
-find_program(CPPCHECK_EXECUTABLE cppcheck)
-
-if(CPPCHECK_EXECUTABLE)
-    add_custom_target(
-        cppcheck
-        COMMAND ${CPPCHECK_EXECUTABLE} --enable=all --inconclusive --std=c++11 ${COMMON_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running Cppcheck"
-        VERBATIM
-    )
-else()
-    message(WARNING "Cppcheck not found. Please install it.")
-endif()

@@ -96,14 +96,27 @@ The garbled RAM can be used as an extension of the emp-sh2pc to achieve semi-hon
 
 The garbler first garbles the ORAM trees and send the material to the evaluator, and the evaluator caches it (in memory or on disk). Then the parties run the rest of computational tasks in a pipelined fashion just like ordinary emp-tool execution. We need this extra preprocessing phase because the execution order of the evaluator is not deterministic and should be hidden from the garbler.
 
-## Run Unit Test (Ubuntu)
+## Install Dependencies
+If you are using Ubuntu
 ```
 git submodule update --init --recursive
-sudo apt-get install libssl-dev libomp-dev
+sudo apt-get install build-essential cmake ninja-build python3 libboost-stacktrace-dev libssl-dev libomp-dev python3
+mkdir emp-src && cd emp-src
+python3 ../emp_tool_install.py --tool
+cd .. && rm -rf emp-src
+```
+
+Alternatively, you can use our docker image
+```
+docker build -t picogram-builder .
+docker run -it --rm -v $(pwd):/picogram -w /picogram picogram-builder
+```
+
+## Build in Debug Mode
+```
 rm -r build
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 ninja -C build
-./build/test_basic --gtest_filter=*ADD TEST NAME HERE*
 ```
 
 ## Build in Release Mode
