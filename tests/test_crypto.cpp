@@ -468,14 +468,6 @@ TEST(TestCrypto, ec_perf_gen_pow) {
   std::cout << "EC generator power time: " << diff.count() / r * 1e6 << " us\n";
 }
 
-TEST(TestCrypto, ec_perf_par) {
-  ECPoint A = ECPoint::generator_pow(BigInt::random());
-  BigInt exponent = BigInt::random();
-#pragma omp parallel
-  for (int r = 0; r < 100000; ++r) {
-    A.pow(exponent);
-  }
-}
 
 TEST(TestCrypto, ec_perf_par32) {
 #pragma omp parallel for
