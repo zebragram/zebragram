@@ -1,7 +1,7 @@
 #include "gadget.hpp"
 #include "simd_word.hpp"
 #include "test_util.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 struct TestSIMDWordMain : Gadget {
   uint max_word_width, min_word_width;
   std::function<FuncOutput(FuncInput)> main_func = [&](FuncInput) {

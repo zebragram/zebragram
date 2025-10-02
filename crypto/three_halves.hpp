@@ -2,7 +2,7 @@
 #include "global.hpp"
 #include "label.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 namespace ThreeHalves {
 /**
  * @brief The garble function
@@ -13,4 +13,4 @@ Label Garble(Label A0, Label B0, uint64_t nonce, uint8_t material[3 * 8 + 1]);
 Label Eval(Label A, Label B, uint64_t nonce, const uint8_t material[3 * 8 + 1]);
 }  // namespace ThreeHalves
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

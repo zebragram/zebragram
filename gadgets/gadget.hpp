@@ -5,7 +5,13 @@
 #include "gc_ptr.hpp"
 #include "util.hpp"
 
-namespace PicoGRAM {
+#ifdef MAX_GADGET_TIME
+// record the number of lost bytes and add them back when calculating the total
+// gc size
+extern uint64_t overwritten_bytes;
+#endif
+
+namespace ZebraGRAM {
 /**
  * @brief The base class of all gadgets (components that consume gc)
  *
@@ -20,17 +26,25 @@ struct BaseGadget {
   Mode mode = DEFAULT;
   bool garbled = false;
   GCPtr init_gc;
+  GCPtr link_init_gc;
   GCPtr gc;
   // the name of the gadget (for debugging)
   std::string name;
 
  public:
-  explicit BaseGadget(uint64_t T) : T(T), init_gc(-1), gc(-1) {}
+  explicit BaseGadget(uint64_t T)
+      : T(T), init_gc(-1), link_init_gc(-1), gc(-1) {}
 
-  BaseGadget(Mode mode, uint64_t T) : T(T), mode(mode), init_gc(-1), gc(-1) {}
+  BaseGadget(Mode mode, uint64_t T)
+      : T(T), mode(mode), init_gc(-1), link_init_gc(-1), gc(-1) {}
 
   BaseGadget(Mode mode, Gadget* caller, uint64_t T)
-      : T(T), caller(caller), mode(mode), init_gc(-1), gc(-1) {}
+      : T(T),
+        caller(caller),
+        mode(mode),
+        init_gc(-1),
+        link_init_gc(-1),
+        gc(-1) {}
 
   /**
    * @brief Garble the gadget for T timesteps. For each timestep, garble every
@@ -46,6 +60,8 @@ struct BaseGadget {
     garbled = true;
     return begin;
   };
+
+  virtual void cleanup() {}
 
   virtual void inc_time() { ++t; }
 
@@ -395,6 +411,8 @@ struct Gadget : BaseGadget {
   void set_measure_multiplier(uint64_t factor) { measure_multiplier = factor; }
 #endif
 
+  void delete_link();
+
   ~Gadget();
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

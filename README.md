@@ -1,22 +1,75 @@
 # gramimpl
-An implementation of PicoGRAM - a garbled RAM with communication cost of w * log N + log^3 N ciphertexts per access.
+An implementation of ZebraGRAM - a garbled RAM with communication cost of O(w * log N + lambda * log^3 N). This project is build upon the implementation of PicoGRAM from Crypto' 25. On a high level, we extend PicoGRAM with the arithmetic circuit garbling techniques, achieving an order of magnitude better communication cost when the data block is large.
 
-## Evaluation of Garbled Boolean Circuit
-Given a boolean circuit, a garbler can garble each gate in the circuit and send the garbled circuit (GC) to the evaluator. The evaluator evaluates every gate of the circuit in the same order as the garbler.
+## Install Dependencies
+First update the googletest sub repository
+```
+git submodule update --init --recursive
+```
+You can use our docker image to install the rest of the dependencies
+```
+docker build -t zebragram-builder .
+```
+On Linux
+```
+docker run -it --rm -v ${pwd}/zebragram -w /zebragram zebragram-builder
+```
+On Windows
+```
+docker run -it --rm -v ${PWD}:/zebragram -w /zebragram zebragram-builder
+```
+
+## Build in Debug Mode
+```
+rm -r build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+ninja -C build
+```
+
+## Build in Release Mode
+```
+rm -r build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+ninja -C build
+```
+
+## Test Arithmetic GRAM
+```
+./build/test_basic --gtest_filter=*RandPayloadMedium*
+```
+
+## Bench 256MB Database with 4kB blocks (position map not included)
+(Warning: OOM error may occur for machine with insufficient memory)
+```
+./build/test_basic --gtest_filter=*Payload256M4k*
+```
+## Bench 256MB Database with 1kB blocks (position map not included)
+(Warning: OOM error may occur for machine with insufficient memory)
+```
+./build/test_basic --gtest_filter=*Payload256M1k*
+```
+
+## Bench Bit Decomposition
+```
+./build/test_basic --gtest_filter=*DecomposeAll*
+```
+
+## Evaluation of Garbled Boolean/Arithmetic Circuit
+Given a boolean/arithmetic circuit, a garbler can garble each gate in the circuit and send the garbled circuit (GC) to the evaluator. The evaluator evaluates every gate of the circuit in the same order as the garbler.
 
 In this implementation, we define basic data types such as `Bit` and `Word` and overload common operators in `types/` to facilitate the garbling and evaluation of boolean circuits. When operating on these data types, the garbler writes to the GC sequentially, and later when the evaluator performs the same operation, it will read from the GC also sequentially.
 
 ## GRAM and Dynamic Language Translation Problem
 The key difficulty in constructing a garbled RAM is that the evaluation order cannot be determined statically. Specifically, we want a function $f_a$ to call another function $f_b$ conditionally based on the runtime value of a control wire. If the condition is unmet, no gate in $f_b$ should be evaluated.
-PicoGRAM extends the idea of Tri-state Circuit by Heath et al. and constructed an improved garbled stack to address this challenge.
+ZebraGRAM extends the idea of Tri-state Circuit by Heath et al. and constructed an improved garbled stack to address this challenge.
 
 ## Abstractions
 ### Basic Data Types
 A Bit represents the garbling of a Boolean wire in the circuit. We implement XOR (`^`) and AND (`&`) using the techniques of Free XOR and half gates. 
 
-A Word consists of multiple bits and can be interpreted as an integer. We define bitwise operations on words as well as arithmetic operations such as addition and comparison.
+A Word consists of multiple bits and can be interpreted as an integer. We define bitwise operations on words as well as arithmetic operations such as addition and comparison. For each Word, we additionally let it hold a payload of type `ArithWord`, which stores the labels of arithmetic wires with `fmpz_t` type from the FLINT library.
 
-A SIMDWord represents the garbling of a cable in PicoGRAM. The garbler's share is a single finite field element (`BigInt`), and the evaluator's share is an array of group elements (`ECPoint`). A SIMDWord can be translated from/to a Word.
+A SIMDWord represents the garbling of a cable in ZebraGRAM. The garbler's share is a single finite field element (`BigInt`), and the evaluator's share is an array of group elements (`ECPoint`). A SIMDWord can be translated from/to a Word.
 
 ### Gadget (`gadgets/gadget.hpp`)
 A gadget is a boolean sub-circuit whose evaluation order is deterministic. As an example, each node in circuit oram tree always runs the same set of read and evict functions at every timestep. Every data object holds a pointer to a gadget that owns it. Each gadget owns a contigueous segment in the GC of the whole circuit, and can be garbled and evaluated like a normal boolean circuit. A gadget may hold states, just like a C++ struct. 
@@ -50,7 +103,7 @@ A function may also access the state variables in the gadget.
 A `SIMDFunc` is used either in the internal implementation of `Func` and or can be explicitily defined to avoid unnecessary translations between `Word` and `SIMDWord`. The interface is similar to `Func` except that the `Word`s are replaced with `SIMDWord`s in the input and output.
 
 ### Link (`gadgets/link.hpp`)
-Links are used to connect a gadget with its parent (caller) gadget. A `Link` or `SIMDLink` implements the stack and reversed stack in PicoGRAM, which takes inspiration from the oblivious compaction algorithm by Goodrich. In particular, a `SIMDLink` utilizes a novel garbling scheme based on the DDH assumption to reduce the communication cost, but may increase computational overhead due to EC operations.
+Links are used to connect a gadget with its parent (caller) gadget. A `Link` or `SIMDLink` implements the stack and reversed stack in ZebraGRAM, which takes inspiration from the oblivious compaction algorithm by Goodrich. In particular, a `SIMDLink` utilizes a novel garbling scheme based on the DDH assumption to reduce the communication cost, but may increase computational overhead due to EC operations.
 
 At each timestamp, the parent gadget may call the `update_link` method to conditionally connect itself with the child gadget based on a control bit. Then, the evaluator can perform any number of `translate` operations to convert between a `Word`/`SIMDWord` owned by the parent gadget and a `Word`/`SIMDWord` owned by the child gadget.
 
@@ -95,42 +148,6 @@ The evaluator also starts with the main function and only execute a function cal
 The garbled RAM can be used as an extension of the emp-sh2pc to achieve semi-honest two-party computation. We define a minimal ORAM interface in `emp/emp_interface.hpp`, and a wrapper in `ram.h`. We utilize the IO channel implementation of the emp-tool for communication between the garbler and the evaluator. 
 
 The garbler first garbles the ORAM trees and send the material to the evaluator, and the evaluator caches it (in memory or on disk). Then the parties run the rest of computational tasks in a pipelined fashion just like ordinary emp-tool execution. We need this extra preprocessing phase because the execution order of the evaluator is not deterministic and should be hidden from the garbler.
-
-## Install Dependencies
-If you are using Ubuntu
-```
-git submodule update --init --recursive
-sudo apt-get install build-essential cmake ninja-build python3 libboost-stacktrace-dev libssl-dev libomp-dev python3
-mkdir emp-src && cd emp-src
-python3 ../emp_tool_install.py --tool
-cd .. && rm -rf emp-src
-```
-
-Alternatively, you can use our docker image
-```
-docker build -t picogram-builder .
-docker run -it --rm -v $(pwd):/picogram -w /picogram picogram-builder
-```
-
-## Build in Debug Mode
-```
-rm -r build
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-ninja -C build
-```
-
-## Build in Release Mode
-```
-rm -r build
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-ninja -C build
-```
-
-## Replicate Evaluation Results
-```
-./build/test_basic --gtest_filter=*RecORAM*IncrMeasure*
-./build/test_basic --gtest_filter=*RecORAM*IncrPerf*
-```
 
 ## Evaluate costs of basic cryptographic operations
 ```

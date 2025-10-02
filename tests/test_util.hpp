@@ -2,12 +2,34 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-// #include "gadget.hpp"
+
+#include "gadget.hpp"
 #include "gc_ptr.hpp"
 #include "global.hpp"
 #include "simd_word.hpp"
 #include "util.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
+
+// Helper function to print size with 4 decimal places using integer operations
+// only
+static void print_size_with_unit(uint64_t size_bytes, const char* unit,
+                                 uint64_t divisor) {
+  uint64_t integer_part = size_bytes / divisor;
+  uint64_t remainder = size_bytes % divisor;
+  uint64_t decimal_part = (remainder * 10000) / divisor;  // 4 decimal places
+  std::cout << integer_part << "." << std::setfill('0') << std::setw(4)
+            << decimal_part << " " << unit << std::endl;
+}
+
+static void print_gc_size(uint64_t gc_size) {
+  if (gc_size > 1UL << 30) {
+    print_size_with_unit(gc_size, "GB", 1UL << 30);
+  } else if (gc_size > 1UL << 20) {
+    print_size_with_unit(gc_size, "MB", 1UL << 20);
+  } else {
+    print_size_with_unit(gc_size, "KB", 1UL << 10);
+  }
+}
 
 enum TRangeType { POW2, EVEN, ANY };
 
@@ -50,41 +72,47 @@ void test_gadget_with_workers(TRangeType T_range_type = ANY,
   uint64_t T = get_rand_T(T_range_type, T_range);
   std::cout << "T: " << T << std::endl;
   srand(rand_seed + 1);
-  MainGadget parent_g(T, GARBLE, args...);
   int fid = open_file("test_data.bin", (size_t)buffer_size);
   ASSERT_GE(fid, 0);
   GCPtr gc_ptr(fid);
   // timing garbling time
   std::vector<GCPtr> gc_ptrs;
   SIMDWord::start_workers_g(num_workers);
+  _fmpz_cleanup();
+  std::cout << "Before garbling: " << std::endl;
+  raise_sigusr1();
   {
+    MainGadget parent_g(T, GARBLE, args...);
+    std::cout << "After creating gadget: " << std::endl;
+    raise_sigusr1();
     auto start = std::chrono::high_resolution_clock::now();
     GCPtr output = parent_g.garble(gc_ptr);
     auto end = std::chrono::high_resolution_clock::now();
     SIMDWord::stop_workers_g();
     uint64_t gc_size = output.get_offset();
-    double gc_size_double = static_cast<double>(gc_size);
-    if (gc_size > 1UL << 30) {
-      std::cout << "gc size: " << gc_size_double / (1UL << 30) << " GB"
-                << std::endl;
-    } else if (gc_size > 1UL << 20) {
-      std::cout << "gc size: " << gc_size_double / (1UL << 20) << " MB"
-                << std::endl;
-    } else {
-      std::cout << "gc size: " << gc_size_double / (1UL << 10) << " KB"
-                << std::endl;
-    }
-    std::cout << "garbling time: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                       start)
-                     .count()
-              << " ms" << std::endl;
+#ifdef MAX_GADGET_TIME
+    std::cout << "GC used for testing: ";
+    print_gc_size(gc_size);
+    gc_size += overwritten_bytes;
+    overwritten_bytes = 0;
+#endif
+    std::cout << "Actual GC used: ";
+    print_gc_size(gc_size);
+    double garble_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+            .count();
+    std::cout << "garbling time: " << garble_time << " ms" << std::endl;
+    std::cout << "avg time per time step: " << garble_time / T << " ms"
+              << std::endl;
+
     std::cout << "parallel time: " << ParTracker::get_time() * 1e3 << " ms"
               << std::endl;
     ParTracker::reset();
     gc_ptrs = parent_g.get_init_gc_ptrs();
   }
-
+  flint_cleanup_all_threads();
+  std::cout << "After garbling: " << std::endl;
+  raise_sigusr1();
   srand(rand_seed + 1);
   MainGadget parent_e(T, EVAL, args...);
 
@@ -93,18 +121,24 @@ void test_gadget_with_workers(TRangeType T_range_type = ANY,
   srand(rand_seed + 2);
   // std::cout << "begin eval" << std::endl;
   SIMDWord::start_workers_e(num_workers);
+#ifdef MAX_GADGET_TIME
+  uint64_t eval_T = std::min(T, (uint64_t)MAX_GADGET_TIME / 2);
+#else
+  uint64_t eval_T = std::min(T, 100UL);
+#endif
   auto start = std::chrono::high_resolution_clock::now();
-  for (uint64_t i = 0; i < T; ++i) {
+  for (uint64_t i = 0; i < eval_T; ++i) {
     // std::cout << "time: " << i << " / " << T << std::endl;
     parent_e.main();
   }
   auto end = std::chrono::high_resolution_clock::now();
   SIMDWord::stop_workers_e();
-  std::cout << "eval time: "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(end -
-                                                                     start)
-                   .count()
-            << " ms" << std::endl;
+  int64_t eval_time =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+          .count();
+  std::cout << "eval time: " << eval_time << " ms" << std::endl;
+  std::cout << "avg time per time step: " << eval_time / eval_T << " ms"
+            << std::endl;
   std::cout << "parallel time: " << ParTracker::get_time() * 1e3 << " ms"
             << std::endl;
   ParTracker::reset();
@@ -115,6 +149,9 @@ void test_gadget_with_workers(TRangeType T_range_type = ANY,
     test_timer.reset();
   }
   close_file(fid);
+#ifdef PRINT_PROGRESS_GRANULARITY
+  next_gc_ckpt = 0;
+#endif
 }
 
 template <typename MainGadget, typename... Args>
@@ -158,41 +195,32 @@ void measure_gadget_gc(uint64_t T, Args... args) {
   GCPtr gc_ptr(-1);
   uint64_t gc_size = parent.garble(gc_ptr).get_offset();
   if (gc_size > 1UL << 30) {
-    std::cout << "gc size: " << (double)gc_size / (1UL << 30) << " GB"
-              << std::endl;
+    print_size_with_unit(gc_size, "GB", 1UL << 30);
 #ifdef MEASURE_STACK_COST
-    std::cout << "stack cost: " << (double)global_stack_cost / (1UL << 30)
-              << " GB" << std::endl;
+    print_size_with_unit(global_stack_cost, "GB (stack cost)", 1UL << 30);
 #endif
 #ifdef MEASURE_TSC_STACK
-    std::cout << "tsc stack cost: "
-              << (double)global_tsc_stack_cost / (1UL << 30) << " GB"
-              << std::endl;
+    print_size_with_unit(global_tsc_stack_cost, "GB (tsc stack cost)",
+                         1UL << 30);
 #endif
   } else if (gc_size > 1UL << 20) {
-    std::cout << "gc size: " << (double)gc_size / (1UL << 20) << " MB"
-              << std::endl;
+    print_size_with_unit(gc_size, "MB", 1UL << 20);
 #ifdef MEASURE_STACK_COST
-    std::cout << "stack cost: " << (double)global_stack_cost / (1UL << 20)
-              << " MB" << std::endl;
+    print_size_with_unit(global_stack_cost, "MB (stack cost)", 1UL << 20);
 #endif
 #ifdef MEASURE_TSC_STACK
-    std::cout << "tsc stack cost: "
-              << (double)global_tsc_stack_cost / (1UL << 20) << " MB"
-              << std::endl;
+    print_size_with_unit(global_tsc_stack_cost, "MB (tsc stack cost)",
+                         1UL << 20);
 #endif
   } else {
-    std::cout << "gc size: " << (double)gc_size / (1UL << 10) << " KB"
-              << std::endl;
+    print_size_with_unit(gc_size, "KB", 1UL << 10);
 #ifdef MEASURE_STACK_COST
-    std::cout << "stack cost: " << (double)global_stack_cost / (1UL << 10)
-              << " KB" << std::endl;
+    print_size_with_unit(global_stack_cost, "KB (stack cost)", 1UL << 10);
 #endif
 #ifdef MEASURE_TSC_STACK
-    std::cout << "tsc stack cost: "
-              << (double)global_tsc_stack_cost / (1UL << 10) << " KB"
-              << std::endl;
+    print_size_with_unit(global_tsc_stack_cost, "KB (tsc stack cost)",
+                         1UL << 10);
 #endif
   }
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

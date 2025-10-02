@@ -4,7 +4,7 @@
 #include "key_manager.hpp"
 #include "rand.hpp"
 #include "util.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 namespace ThreeHalves {
 typedef uint64_t control_t;
 // assume arr in row-major
@@ -288,4 +288,4 @@ Label Eval(Label A, Label B, uint64_t nonce,
 }
 }  // namespace ThreeHalves
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

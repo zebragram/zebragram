@@ -2,20 +2,64 @@
 #include <functional>
 #include <vector>
 
+#include "arith_word.hpp"
 #include "simd_word.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 using SIMDFuncInput = const std::vector<SIMDWord>&;
 using SIMDFuncOutput = std::vector<SIMDWord>;
 
-using FuncInput = const std::vector<Word>&;
-using FuncOutput = std::vector<Word>;
+// using FuncInput = const std::vector<Word>&;
+template <typename Word_Type>
+struct FuncParamVec : public std::vector<Word_Type> {
+  // ArithWord payload;
+
+  FuncParamVec() = default;
+
+  FuncParamVec(std::initializer_list<Word_Type> init)
+      : std::vector<Word_Type>(init) {}
+
+  // constructor from std::vector<Word>
+  FuncParamVec(const std::vector<Word_Type>& vec)
+      : std::vector<Word_Type>(vec) {}
+
+  // FuncParamVec(const std::vector<Word_Type>& vec, const ArithWord& payload) :
+  // std::vector<Word_Type>(vec), payload(payload) {}
+
+  // get the total bit width of the input words
+  uint total_bit_width() const {
+    return std::accumulate(
+        this->begin(), this->end(), 0UL,
+        [](uint acc, const Word_Type& w) { return acc + w.width(); });
+  }
+
+  uint total_arith_width() const {
+    return std::accumulate(
+        this->begin(), this->end(), 0UL, [](uint acc, const Word_Type& w) {
+          return acc + (w.has_payload() ? w.get_payload().width() : 0);
+        });
+  }
+
+  uint64_t total_gc_size() const {
+    return total_bit_width() * sizeof(Label) +
+           total_arith_width() * ArithLabel::byte_length;
+  }
+};
+
+using FuncInput = const FuncParamVec<Word>&;
+
+using FuncOutput = FuncParamVec<Word>;
 
 #define DEFINE_SIMDFUNC(name, out_widths_param, func) \
   SIMDFunc name = SIMDFunc(self, func, out_widths_param, STR(name));
 
 #define DEFINE_FUNC(name, out_widths_param, func) \
   Func name = Func(self, func, out_widths_param, STR(name));
+
+#define DEFINE_FUNC_ARITH(name, out_widths_param, out_arith_widths_param, \
+                          func)                                           \
+  Func name =                                                             \
+      Func(self, func, out_widths_param, out_arith_widths_param, STR(name));
 
 struct Link;
 struct SIMDLink;
@@ -28,6 +72,7 @@ struct FuncType : DataType {
  protected:
   // the output SIMDWord widths of the SIMD function
   std::vector<uint> out_widths;
+  std::vector<uint> out_arith_widths;
 
   // the name of the function, must be unique in the same gadget
   std::string name;
@@ -36,6 +81,15 @@ struct FuncType : DataType {
   FuncType(Gadget* owner, const std::vector<uint>& out_widths,
            const std::string& name)
       : DataType(owner), out_widths(out_widths), name(name) {
+    Assert(owner);
+  }
+
+  FuncType(Gadget* owner, const std::vector<uint>& out_widths,
+           const std::vector<uint>& out_arith_widths, const std::string& name)
+      : DataType(owner),
+        out_widths(out_widths),
+        out_arith_widths(out_arith_widths),
+        name(name) {
     Assert(owner);
   }
 
@@ -78,6 +132,10 @@ struct FuncType : DataType {
   LinkType get_link_type() const;
 
   const std::vector<uint>& get_out_widths() const { return out_widths; }
+
+  const std::vector<uint>& get_out_arith_widths() const {
+    return out_arith_widths;
+  }
 
   uint sum_out_width() const {
     return std::accumulate(out_widths.begin(), out_widths.end(), 0UL);
@@ -225,6 +283,12 @@ struct Func : FuncType {
        const std::function<FuncOutput(FuncInput)>& func = NULL,
        const std::vector<uint>& out_widths = {}, const std::string& name = "");
 
+  Func(Gadget* owner = NULL,
+       const std::function<FuncOutput(FuncInput)>& func = NULL,
+       const std::vector<uint>& out_widths = {},
+       const std::vector<uint>& out_arith_widths = {},
+       const std::string& name = "");
+
   /**
    * @brief Function call only for the main function, which has no input/output.
    *
@@ -242,11 +306,11 @@ struct Func : FuncType {
    * @param control the control bit. If the control bit is 0, the call is real,
    * otherwise it is fake.
    * @param inputs the input words
-   * @return std::vector<Word> the output words. If the call is fake, the
+   * @return FuncOutput the output words. If the call is fake, the
    * outputs will return a vector of constant zeros. The pub_e flags in the
    * output words should always be false.
    */
-  std::vector<Word> operator()(const Bit& control, FuncInput inputs);
+  FuncOutput operator()(const Bit& control, FuncInput inputs);
 
   /**
    * @brief Alternative interface of operator(). Allows the output languages to
@@ -268,9 +332,9 @@ struct Func : FuncType {
    * always true.
    *
    * @param inputs
-   * @return std::vector<Word>
+   * @return FuncOutput
    */
-  std::vector<Word> operator()(FuncInput inputs);
+  FuncOutput operator()(FuncInput inputs);
 
   /**
    * @brief Garble the function for one timestep. Mock all function calls
@@ -292,4 +356,4 @@ struct Func : FuncType {
     }
   }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

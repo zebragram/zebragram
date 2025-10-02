@@ -2,7 +2,7 @@
 
 #include "hash.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 BIGNUM* BigInt::q;
 BIGNUM* BigInt::mont_cache;
@@ -63,4 +63,4 @@ void ECPoint::dec(const Label& key, const uint8_t ciphertext[byte_length],
   dec_ec_point(*this, key, ciphertext, nonce1, nonce2);
 }
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

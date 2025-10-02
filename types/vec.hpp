@@ -3,7 +3,7 @@
 
 #include "word.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 struct Vec : DataType {
  private:
   std::vector<Word> data;
@@ -103,4 +103,4 @@ struct Vec : DataType {
 
   uint size() const { return data.size(); }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

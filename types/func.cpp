@@ -3,7 +3,7 @@
 #include "gadget_group.hpp"
 #include "link.hpp"
 #include "simd_word.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 LinkType FuncType::get_link_type() const {
   Assert(owner);
   return owner->get_link_type();
@@ -173,8 +173,9 @@ void SIMDFunc::garble() {
 }
 
 Func::Func(Gadget* owner, const std::function<FuncOutput(FuncInput)>& func,
-           const std::vector<uint>& out_widths, const std::string& name)
-    : FuncType(owner, out_widths, name), original_func(func) {
+           const std::vector<uint>& out_widths,
+           const std::vector<uint>& out_arith_widths, const std::string& name)
+    : FuncType(owner, out_widths, out_arith_widths, name), original_func(func) {
   LinkType link_type = get_link_type();
   if (name == "main") {
     // add main function to the registry
@@ -205,6 +206,10 @@ Func::Func(Gadget* owner, const std::function<FuncOutput(FuncInput)>& func,
   }
 }
 
+Func::Func(Gadget* owner, const std::function<FuncOutput(FuncInput)>& func,
+           const std::vector<uint>& out_widths, const std::string& name)
+    : Func(owner, func, out_widths, {}, name) {}
+
 void Func::operator()() {
   Assert_eq(get_name(), "main");
   get_owner()->inc_time();
@@ -219,6 +224,13 @@ FuncOutput Func::operator()(const Bit& control, FuncInput inputs) {
       outputs.resize(out_widths.size());
       for (uint i = 0; i < out_widths.size(); ++i) {
         outputs[i] = Word::rand_label_word(get_caller(), out_widths[i]);
+        if (!out_arith_widths.empty()) {
+          Assert_eq(out_arith_widths.size(), out_widths.size());
+          if (out_arith_widths[i] > 0) {
+            outputs[i].set_payload(ArithWord::rand_label_arith_word(
+                get_caller(), out_arith_widths[i]));
+          }
+        }
       }
     }
   }
@@ -284,10 +296,18 @@ void Func::exec(const Bit& control, FuncInput inputs, FuncOutput& outputs) {
         Assert(outputs.empty());
         // the call is fake, return dummy outputs
         outputs.reserve(out_widths.size());
-        for (uint out_width : out_widths) {
-          outputs.emplace_back(get_caller(), out_width);
+        for (size_t i = 0; i < out_widths.size(); ++i) {
+          outputs.emplace_back(get_caller(), out_widths[i]);
           outputs.back().set_pub_e(false);
           outputs.back().set_pub_g(false);
+          if (!out_arith_widths.empty()) {
+            Assert_eq(out_arith_widths.size(), out_widths.size());
+            if (out_arith_widths[i] > 0) {
+              // TODO: fill
+              // outputs.back().set_payload(ArithWord::rand_label_arith_word(
+              //     get_caller(), out_arith_widths[i]));
+            }
+          }
         }
         return;
       }
@@ -412,4 +432,4 @@ void Func::garble() {
   }
   return;
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

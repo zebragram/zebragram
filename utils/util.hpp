@@ -1,9 +1,11 @@
 #pragma once
 #include <cxxabi.h>
 #include <execinfo.h>
+#include <omp.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <array>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
@@ -13,7 +15,6 @@
 #include <sstream>
 #include <unordered_set>
 #include <vector>
-#include <array>
 
 #include "global.hpp"
 #include "lock.hpp"
@@ -79,11 +80,19 @@
 
 #define STRR(X) #X
 #define STR(X) STRR(X)
-namespace PicoGRAM {
+
+extern void raise_sigusr1();
+
+extern void flint_cleanup_all_threads();
+
+namespace ZebraGRAM {
 
 uint log2(uint64_t n);
 uint log2ceil(uint64_t n);
 uint bit_width(uint64_t n);
+
+double chernoff_upper_bound(double N, double M, double K,
+                            int epsilon_exp = -60);
 
 /**
  * @brief Reverse the count least significant bits of a 64-bit word
@@ -111,7 +120,7 @@ template <typename Container>
 void clear_and_release(Container& vec) {
   Container().swap(vec);
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM
 
 void print_stack_trace();
 
@@ -239,17 +248,17 @@ struct ResourcePool {
  */
 struct Timer {
  private:
-  std::chrono::high_resolution_clock::time_point start;
-  std::chrono::high_resolution_clock::time_point end;
-  std::chrono::nanoseconds total_time;
-  std::vector<std::chrono::nanoseconds> tic_lap_times;
-  std::vector<std::chrono::nanoseconds> toc_lap_times;
+  double start;
+  double end;
+  double total_time;
+  std::vector<double> tic_lap_times;
+  std::vector<double> toc_lap_times;
 #ifndef NDEBUG
   bool running = false;
 #endif
 
  public:
-  Timer() : total_time(std::chrono::nanoseconds::zero()) {}
+  Timer() : start(0.0), end(0.0), total_time(0.0) {}
 
   /**
    * @brief Start the timer
@@ -260,7 +269,7 @@ struct Timer {
     Assert(!running);
     running = true;
 #endif
-    start = std::chrono::high_resolution_clock::now();
+    start = omp_get_wtime();
   }
 
   /**
@@ -273,14 +282,12 @@ struct Timer {
     Assert(!running);
     running = true;
 #endif
-    start = std::chrono::high_resolution_clock::now();
+    start = omp_get_wtime();
     if (id >= tic_lap_times.size()) {
-      tic_lap_times.resize(id + 1);
+      tic_lap_times.resize(id + 1, 0.0);
     }
-    // if end is set
-    if (end.time_since_epoch().count() != 0) {
-      tic_lap_times[id] +=
-          std::chrono::duration_cast<std::chrono::nanoseconds>(start - end);
+    if (end != 0.0) {
+      tic_lap_times[id] += start - end;
     }
   }
 
@@ -294,9 +301,8 @@ struct Timer {
     Assert(running);
     running = false;
 #endif
-    end = std::chrono::high_resolution_clock::now();
-    total_time +=
-        std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    end = omp_get_wtime();
+    total_time += end - start;
   }
 
   /**
@@ -310,12 +316,11 @@ struct Timer {
     Assert(running);
     running = false;
 #endif
-    end = std::chrono::high_resolution_clock::now();
+    end = omp_get_wtime();
     if (id >= toc_lap_times.size()) {
-      toc_lap_times.resize(id + 1);
+      toc_lap_times.resize(id + 1, 0.0);
     }
-    std::chrono::nanoseconds lap_time =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    double lap_time = end - start;
     toc_lap_times[id] += lap_time;
     total_time += lap_time;
   }
@@ -325,7 +330,9 @@ struct Timer {
    *
    */
   void reset() {
-    total_time = std::chrono::nanoseconds::zero();
+    total_time = 0.0;
+    start = 0.0;
+    end = 0.0;
     tic_lap_times.clear();
     toc_lap_times.clear();
 #ifndef NDEBUG
@@ -338,7 +345,7 @@ struct Timer {
    *
    * @return double
    */
-  double get_time() const { return total_time.count() / 1e9; }
+  double get_time() const { return total_time; }
 
   /**
    * @brief Print the lap times for each id.
@@ -346,14 +353,16 @@ struct Timer {
    */
   void print_laps() const {
     for (uint16_t i = 0; i < tic_lap_times.size(); ++i) {
-      if (tic_lap_times[i].count()) {
-        std::cout << "Tic Lap " << i << ": " << tic_lap_times[i].count() / 1e6
-                  << " ms" << std::endl;
+      if (tic_lap_times[i] > 0) {
+        std::cout << "Tic Lap " << i << ": " << tic_lap_times[i] * 1000 << " ms"
+                  << std::endl;
       }
     }
     for (uint16_t i = 0; i < toc_lap_times.size(); ++i) {
-      std::cout << "Toc Lap " << i << ": " << toc_lap_times[i].count() / 1e6
-                << " ms" << std::endl;
+      if (toc_lap_times[i] > 0) {
+        std::cout << "Toc Lap " << i << ": " << toc_lap_times[i] * 1000 << " ms"
+                  << std::endl;
+      }
     }
   }
 };
@@ -398,4 +407,9 @@ extern bool measure_stack_flag;
 
 #ifdef MEASURE_TSC_STACK
 extern uint64_t global_tsc_stack_cost;
+#endif
+
+#ifdef PRINT_PROGRESS_GRANULARITY
+extern uint64_t next_gc_ckpt;
+extern void print_curr_gc_offset(uint64_t curr_gc_offset);
 #endif

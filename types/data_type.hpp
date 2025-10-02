@@ -1,7 +1,8 @@
 #pragma once
 
+#include "arith_label.hpp"
 #include "label.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 struct Gadget;
 
@@ -34,4 +35,4 @@ struct DataType {
 
   virtual ~DataType() {}
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

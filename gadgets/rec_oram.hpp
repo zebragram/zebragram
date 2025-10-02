@@ -3,7 +3,7 @@
 #include "circuit_oram.hpp"
 #include "vec.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief Circuit ORAM with recursive position maps.
  *
@@ -191,13 +191,15 @@ struct RecursiveORAM : DataType {
    * position map
    */
   RecursiveORAM(Gadget* owner, uint64_t memory_space, uint word_width,
-                uint64_t T, uint64_t simd_link_threshold = 8,
+                uint payload_width, uint64_t T,
+                uint64_t simd_link_threshold = 8,
                 uint64_t linear_oram_threshold = 512)
       : DataType(owner),
         memory_space(memory_space),
-        oram(owner, memory_space, word_width, T,
-             ORAMConstParams::recommended_params(log2ceil(memory_space),
-                                                 simd_link_threshold)),
+        oram(owner, memory_space, word_width, payload_width, T,
+             ORAMConstParams::recommended_params(
+                 log2ceil(memory_space),
+                 payload_width > 0 ? UINT64_MAX : simd_link_threshold)),
         T(T) {
     Assert(memory_space > 0 && (memory_space & (memory_space - 1)) == 0);
     positions_per_word = 4;
@@ -206,9 +208,9 @@ struct RecursiveORAM : DataType {
     if (pos_map_memory_space < linear_oram_threshold) {
       linear_pos_map = new Vec(owner, memory_space);
     } else {
-      pos_map = new RecursiveORAM(owner, pos_map_memory_space,
-                                  oram.position_width * positions_per_word, T,
-                                  simd_link_threshold, linear_oram_threshold);
+      pos_map = new RecursiveORAM(
+          owner, pos_map_memory_space, oram.position_width * positions_per_word,
+          0, T, simd_link_threshold, linear_oram_threshold);
     }
   }
 
@@ -221,4 +223,4 @@ struct RecursiveORAM : DataType {
     }
   }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

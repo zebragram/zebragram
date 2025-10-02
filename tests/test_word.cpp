@@ -1,7 +1,7 @@
 #include "gadget.hpp"
 #include "test_util.hpp"
 #include "word.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 struct TestWordMain : Gadget {
   std::function<FuncOutput(FuncInput)> main_func = [&](FuncInput) {
     uint len_a = 1 + get_time() % 30;

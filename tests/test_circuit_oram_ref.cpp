@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "circuit_oram_ref.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 struct CircuitORAMRefMain {
   CircuitORAMRef oram;
   uint v_addr_width;

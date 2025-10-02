@@ -2,7 +2,7 @@
 #include "func.hpp"
 #include "gadget.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 template <typename GadgetType, typename... Args>
 struct Group;
@@ -50,7 +50,7 @@ struct GroupEntry {
     Bit is_selected = (selector == index);
     Bit is_selected_revealed = is_selected.reveal();
     uint8_t is_selected_val = is_selected_revealed.to_int();
-    std::vector<WordType_> outputs = predefined_outputs;
+    FuncParamVec<WordType_> outputs = predefined_outputs;
     func.exec(!is_selected_revealed, inputs, outputs);
     Mode mode = selector.get_mode();
     // for garble mode, the output labels of all the gadgets are the same,
@@ -86,6 +86,18 @@ struct GroupEntry {
         for (uint width : out_widths) {
           predefined_outputs.emplace_back(
               Word::rand_label_word(selector.get_owner(), width));
+        }
+        const std::vector<uint>& out_arith_widths =
+            sub_func->get_out_arith_widths();
+        if (!out_arith_widths.empty()) {
+          Assert_eq(out_arith_widths.size(), out_widths.size());
+          for (uint j = 0; j < out_arith_widths.size(); ++j) {
+            if (out_arith_widths[j] > 0) {
+              predefined_outputs[j].set_payload(
+                  ArithWord::rand_label_arith_word(selector.get_owner(),
+                                                   out_arith_widths[j]));
+            }
+          }
         }
       }
       call_internal(aggregated_outputs, i, *sub_func, inputs,
@@ -179,13 +191,15 @@ struct Group {
    * gadget will run for the maximum number of timesteps the parent gadget runs.
    * @param args Additional arguments to pass to the constructor of the child
    */
-  Group(Gadget* caller, const std::vector<uint64_t>& T_children, Args... args)
-      : Group(caller, T_children, 0, args...) {}
+  Group(Gadget* caller, uint64_t num_children,
+        const std::vector<uint64_t>& T_bounds, Args... args)
+      : Group(caller, num_children, T_bounds, 0, args...) {}
 
-  Group(Gadget* caller, const std::vector<uint64_t>& T_children,
-        uint64_t simd_threshold_T, Args... args)
+  Group(Gadget* caller, uint64_t num_children,
+        const std::vector<uint64_t>& T_bounds, uint64_t simd_threshold_T,
+        Args... args)
       : simd_threshold_T(simd_threshold_T) {
-    uint64_t num_gadgets = T_children.size();
+    uint64_t num_gadgets = num_children;
     gadgets.reserve(num_gadgets);
     link_type = caller->get_T() <= simd_threshold_T ? COND : SIMD_COND;
 #ifdef FAST_MEASURE
@@ -201,7 +215,7 @@ struct Group {
                       [T0](uint64_t T) { return T == T0; });
       if (fast_measure_flag) {
         for (uint64_t i = 0; i < num_gadgets; ++i) {
-          gadgets.push_back(new GadgetType(caller, link_type, T_children[i],
+          gadgets.push_back(new GadgetType(caller, link_type, T_bounds,
                                            i == 0 ? num_gadgets : 0, args...));
         }
         return;
@@ -209,12 +223,11 @@ struct Group {
     }
     for (uint64_t i = 0; i < num_gadgets; ++i) {
       gadgets.push_back(
-          new GadgetType(caller, link_type, T_children[i], 1, args...));
+          new GadgetType(caller, link_type, T_bounds, 1, args...));
     }
 #else
     for (uint64_t i = 0; i < num_gadgets; ++i) {
-      gadgets.push_back(
-          new GadgetType(caller, link_type, T_children[i], args...));
+      gadgets.push_back(new GadgetType(caller, link_type, T_bounds, args...));
     }
 #endif
   }
@@ -255,4 +268,4 @@ struct Group {
     }
   }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

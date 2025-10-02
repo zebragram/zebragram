@@ -5,7 +5,7 @@
 #if USE_EMP_TOOL
 #include <emp-tool/utils/ccrh.h>
 #endif
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 #if USE_EMP_TOOL
 emp::CCRH ccrh;
@@ -183,4 +183,4 @@ void dec_ec_point(ECPoint& point, const Label& key,
   xor_bytes(point.bytes, ciphertext, ECPoint::byte_length);
 }
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

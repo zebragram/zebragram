@@ -3,7 +3,7 @@
 #include "ec.hpp"
 #include "label.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief A global key manager for the garbler
  *
@@ -12,14 +12,14 @@ struct KeyManager {
  private:
   Label Delta;  // Δ in free-XOR, i.e., the XOR of two random labels of the same
                 // wire
-  BigInt delta;  // δ in PicoGRAM, i.e., the discrete logarithm of the two
+  BigInt delta;  // δ in ZebraGRAM, i.e., the discrete logarithm of the two
                  // encodings of the same sub-wire of a cable.
   Label rand_encoding;  // the encoding of all random input wires, intended to
                         // be shared with the evaluator (since each gate has a
                         // nonce, it's fine to reuse this encoding) Set to zero
                         // by default
   Label neg_rand_encoding;  // the negation of rand_encoding
-  // Γ values in PicoGRAM for each cable bit offset
+  // Γ values in ZebraGRAM for each cable bit offset
   std::vector<std::vector<BigInt>> Gamma;
 
  public:
@@ -69,4 +69,4 @@ struct KeyManager {
 };
 
 extern KeyManager key_manager;
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

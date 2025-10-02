@@ -3,7 +3,7 @@
 #include "gadget.hpp"
 #include "three_halves.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 Bit Bit::constant(Gadget* owner, uint8_t value) {
   Bit bit(owner);
   bit.pub_g = true;
@@ -287,4 +287,4 @@ void Bit::cond_swap(const Bit& control, Bit& bit0, Bit& bit1) {
   bit0 ^= bit_xor_or_zero;
   bit1 ^= bit_xor_or_zero;
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

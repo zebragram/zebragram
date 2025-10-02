@@ -1,6 +1,6 @@
 #pragma once
 /**
- * @brief An interface for the PicoGRAM library compatible with the EMP
+ * @brief An interface for the ZebraGRAM library compatible with the EMP
  * framework
  *
  */
@@ -10,7 +10,7 @@
 #include "../global.hpp"
 #include "channel_util.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief A minimal abstraction of a bit garbled with Free-XOR
  *
@@ -74,7 +74,7 @@ using ChannelType = Channel::ChannelType;
 extern bool Delta_set_flag;
 
 /**
- * @brief Set the global Delta value for the PicoGRAM library
+ * @brief Set the global Delta value for the ZebraGRAM library
  *
  * @param Delta the XOR of the zero label and the one label of the same wire,
  * Delta.bit[0] must be odd
@@ -143,4 +143,4 @@ struct ORAMType {
   ~ORAMType();
 };
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

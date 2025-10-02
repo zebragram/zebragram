@@ -3,7 +3,7 @@
 #include "gadget.hpp"
 #include "key_manager.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 constexpr uint SIMDWord::max_pack_width;
 
@@ -616,4 +616,4 @@ uint SIMDWord::num_workers_e = 0;
 SIMDWord::SIMDWordWorkerGThread* SIMDWord::simd_word_worker_g_threads = nullptr;
 SIMDWord::SIMDWordWorkerEThread* SIMDWord::simd_word_worker_e_threads = nullptr;
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

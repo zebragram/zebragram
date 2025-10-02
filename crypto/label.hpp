@@ -6,7 +6,7 @@
 
 #include "global.hpp"
 #include "rand.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 #if LAMBDA_BYTES == 16
 struct Label {
@@ -193,4 +193,4 @@ struct MAC {
 
   bool operator!=(const MAC& other) const { return !(*this == other); }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

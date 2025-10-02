@@ -1,5 +1,5 @@
 #include "rand.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 void secure_random_128bit(unsigned char* random_bytes) {
   // Generate 128 bits (16 bytes) of secure random data
   if (RAND_bytes(random_bytes, 16) != 1) {
@@ -35,4 +35,4 @@ uint8_t secure_random_byte() {
 
 RandBitPool rand_bit_pool;
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

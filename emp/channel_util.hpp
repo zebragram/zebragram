@@ -5,7 +5,7 @@
 
 #include "../global.hpp"
 #include "../utils/util.hpp"
-namespace PicoGRAM::Channel {
+namespace ZebraGRAM::Channel {
 
 /**
  * @brief A wrapper for different types of IO channels
@@ -179,4 +179,4 @@ ssize_t write(int fid, const void* data, ssize_t size);
  * exist
  */
 int close(int fid);
-}  // namespace PicoGRAM::Channel
+}  // namespace ZebraGRAM::Channel

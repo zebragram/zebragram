@@ -1,9 +1,10 @@
 #pragma once
 
 #include "gadget_group.hpp"
+#include "types/arith_word.hpp"
 #include "waksman.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 /**
  * @brief Data block used when initializing the ORAM
@@ -55,6 +56,16 @@ struct ORAMConstParams {
   uint64_t simd_link_threshold;
 
   ORAMConstParams() = delete;
+
+  ORAMConstParams(uint stash_size, uint bkt_size, uint evict_freq,
+                  uint max_log_way, uint64_t simd_link_threshold)
+      : stash_size(stash_size),
+        bkt_size(bkt_size),
+        evict_freq(evict_freq),
+        max_log_way(max_log_way),
+        simd_link_threshold(simd_link_threshold) {
+    Assert(stash_size > 0 && bkt_size > 0 && evict_freq > 0 && max_log_way > 0);
+  }
 
   static ORAMConstParams dbg_params() { return {20u, 3u, 2u, 2u, 8ul}; }
 
@@ -110,6 +121,7 @@ struct CircuitORAMTree : Gadget {
  private:
   uint v_addr_width;    // the width of the virtual address word
   uint word_width;      // the width of the data word
+  uint payload_width;   // the width of the arith data word
   uint level_width;     // the width of the total level of the tree
   uint position_width;  // the width of the position word
   uint level;           // the level in the tree (root has level 0)
@@ -127,7 +139,9 @@ struct CircuitORAMTree : Gadget {
                                     // bucket
   std::vector<Word> bkt_datas;      // the data in the bucket
 
-  Group<CircuitORAMTree, uint, uint, uint, uint, uint, uint,
+  std::vector<ArithWord> bkt_data_arith;  // the data in the bucket as ArithWord
+
+  Group<CircuitORAMTree, uint, uint, uint, uint, uint, uint, uint,
         ORAMConstParams>* children =
       NULL;  // the children (sub-tree) of the current node
 
@@ -197,8 +211,11 @@ struct CircuitORAMTree : Gadget {
 
   Word to_swap_data;  // the data to swap / swapped with a bucket entry
 
+  ArithWord to_swap_arith_data;  // the data to swap / swapped with a bucket
+                                 // entry as ArithWord
+
   // a reference to the sub-tree corresponding to the position
-  GroupEntry<CircuitORAMTree, uint, uint, uint, uint, uint, uint,
+  GroupEntry<CircuitORAMTree, uint, uint, uint, uint, uint, uint, uint,
              ORAMConstParams>
       child_entry;
 
@@ -418,6 +435,7 @@ struct CircuitORAMTree : Gadget {
     const Word& hold_position = inputs[1];
     const Word& hold_v_addr = inputs[2];
     const Word& hold_data = inputs[3];
+    const ArithWord& hold_arith_data = inputs[3].get_payload();
     // whether we should read the deepest slot
     Bit should_read = should_send | local_has_match;
     // whether we should swap with a dummy slot
@@ -427,6 +445,7 @@ struct CircuitORAMTree : Gadget {
     Word to_swap_position = hold_position;
     Word to_swap_v_addr = hold_v_addr;
     to_swap_data = hold_data;
+    to_swap_arith_data = hold_arith_data;
     // whether we should read from the bucket
     Bit should_read_from_bkt = should_read;
     if (level == 0) {
@@ -439,6 +458,8 @@ struct CircuitORAMTree : Gadget {
     Gadget* owner = local_has_match.get_owner();
     Mode mode = owner->get_mode();
 #endif
+    std::vector<Bit> swap_flags(bkt_size);
+    Bit has_swapped = Bit::constant(self, 0);
     for (uint i = 0; i < bkt_size; ++i) {
       Bit is_deepest = local_deepest_one_hot[i];
       Bit read_and_remove_flag = is_deepest & should_read_from_bkt;
@@ -446,11 +467,9 @@ struct CircuitORAMTree : Gadget {
       // we might swap with multiple dummy slots when write to dummy flag is
       // true, but it is fine since swapping dummy with dummy is a
       // effectively no-op
-      Bit swap_flag = read_and_remove_flag | write_to_dummy_flag;
-      Bit::cond_swap(swap_flag, bkt_valids[i], to_swap_valid);
-      Word::cond_swap(swap_flag, bkt_positions[i], to_swap_position);
-      Word::cond_swap(swap_flag, bkt_v_addrs[i], to_swap_v_addr);
-      Word::cond_swap(swap_flag, bkt_datas[i], to_swap_data);
+      swap_flags[i] =
+          (read_and_remove_flag | write_to_dummy_flag) & !has_swapped;
+      has_swapped |= swap_flags[i];
 #ifdef FAST_MEASURE
       if (mode == MEASURE && owner->get_time() > 1) {
         uint64_t end_gc_offset = owner->get_gc().get_offset();
@@ -468,11 +487,43 @@ struct CircuitORAMTree : Gadget {
       }
 #endif
     }
+    for (uint i = 0; i < bkt_size; ++i) {
+      Bit::cond_swap(swap_flags[i], bkt_valids[i], to_swap_valid);
+      Word::cond_swap(swap_flags[i], bkt_positions[i], to_swap_position);
+      Word::cond_swap(swap_flags[i], bkt_v_addrs[i], to_swap_v_addr);
+      Word::cond_swap(swap_flags[i], bkt_datas[i], to_swap_data);
+#ifdef FAST_MEASURE
+      if (mode == MEASURE && owner->get_time() > 1) {
+        uint64_t end_gc_offset = owner->get_gc().get_offset();
+        if (i == 0) {
+          // the cost of the first timestep may be different, so we measure the
+          // second timestep
+          begin_gc_offset = end_gc_offset;
+        } else {
+          Assert(i == 1);
+          uint64_t gc_cost_per_timestamp = end_gc_offset - begin_gc_offset;
+          owner->get_gc().skip_data(gc_cost_per_timestamp * (bkt_size - 2));
+          // skip the rest
+          break;
+        }
+      }
+#endif
+    }
+    if (to_swap_arith_data.width() > 0) {
+      batch_swap_arith_words(swap_flags, bkt_data_arith, to_swap_arith_data);
+    }
     if (op.to_int() == EVICT) {
       local_has_match.skip();  // skip the return value
     }
     if (!remain_level) {
       to_swap_data *= local_has_match;
+      if (to_swap_arith_data.width() > 0) {
+        ArithWord to_swap_arith_data_copy = to_swap_arith_data;
+        std::vector<ArithWord> result_vec = batch_bit_arith_word_mul(
+            {local_has_match}, {to_swap_arith_data_copy});
+        to_swap_arith_data = result_vec[0];
+      }
+
       return {};
     }
     // case 1: should_drop = false, should_read = false
@@ -496,11 +547,30 @@ struct CircuitORAMTree : Gadget {
         should_send, hold_position >> log_way, to_swap_position >> log_way);
     const Word& child_hold_v_addr =
         Word::mux(should_send, hold_v_addr, to_swap_v_addr);
-    const Word& child_hold_data =
-        Word::mux(should_send, hold_data, to_swap_data);
+    Word child_hold_data = Word::mux(should_send, hold_data, to_swap_data);
     to_swap_data *= local_has_match;
-    return {Word(child_hold_valid), child_hold_position, child_hold_v_addr,
-            child_hold_data};
+    if (to_swap_arith_data.width() > 0) {
+      // Decompose mux: result = word1 + bit * (word2 - word1)
+      ArithWord word_diff = to_swap_arith_data - hold_arith_data;
+      ArithWord to_swap_arith_data_copy = to_swap_arith_data;
+
+      // Batch both bit-arith-word multiplications together
+      std::vector<ArithWord> result_vec = batch_bit_arith_word_mul(
+          {should_send, local_has_match}, {word_diff, to_swap_arith_data_copy});
+
+      // Complete the mux operation: child_hold_arith_data = hold_arith_data +
+      // result_vec[0]
+      const ArithWord child_hold_arith_data = hold_arith_data + result_vec[0];
+
+      // Complete the multiplication: to_swap_arith_data = result_vec[1]
+      to_swap_arith_data = result_vec[1];
+
+      child_hold_data.set_payload(child_hold_arith_data);
+      return FuncOutput({Word(child_hold_valid), child_hold_position,
+                         child_hold_v_addr, child_hold_data});
+    }
+    return FuncOutput({Word(child_hold_valid), child_hold_position,
+                       child_hold_v_addr, child_hold_data});
   }
 
   /**
@@ -525,6 +595,9 @@ struct CircuitORAMTree : Gadget {
   std::function<FuncOutput(FuncInput)> access_func = [&](FuncInput inputs) {
     FuncInput child_inputs = access_local(inputs);
     if (!remain_level) {
+      if (payload_width) {
+        to_swap_data.set_payload(to_swap_arith_data);
+      }
       return FuncOutput({to_swap_data});
     }
     if (children->get_link_type() == SIMD_COND) {
@@ -546,7 +619,12 @@ struct CircuitORAMTree : Gadget {
       return FuncOutput({output_data});
     } else {
       FuncInput child_output = child_entry.call("access", child_inputs);
-      const Word& output_data = child_output[0] ^ to_swap_data;
+      Word output_data = child_output[0] ^ to_swap_data;
+      if (payload_width) {
+        output_data.set_payload(child_output[0].get_payload() +
+                                to_swap_arith_data);
+      }
+
       return FuncOutput({output_data});
     }
   };
@@ -626,7 +704,10 @@ struct CircuitORAMTree : Gadget {
   DEFINE_SIMDFUNC(meta_scan_simd, std::vector<uint>({level_width, 1}),
                   meta_scan_simd_func);
 
-  DEFINE_FUNC(access, std::vector<uint>({word_width}), access_func);
+  DEFINE_FUNC_ARITH(access, {word_width},
+                    payload_width ? std::vector<uint>({payload_width})
+                                  : std::vector<uint>(),
+                    access_func);
 
   DEFINE_SIMDFUNC(access_simd, std::vector<uint>({word_width}),
                   access_func_simd);
@@ -810,21 +891,23 @@ struct CircuitORAMTree : Gadget {
    * @param bkt_size the capacity of all other buckets
    * @param log_way the log2 of the tree's fan-out
    */
-  CircuitORAMTree(Gadget* caller, LinkType link_type, uint64_t T,
+  CircuitORAMTree(Gadget* caller, LinkType link_type,
+                  const std::vector<uint64_t>& T_bounds,
 #ifdef FAST_MEASURE
                   uint64_t measure_multiplier,
 #endif
-                  uint v_addr_width, uint word_width, uint position_width,
-                  uint level_width, uint level, uint log_way,
-                  const ORAMConstParams& params)
+                  uint v_addr_width, uint word_width, uint payload_width,
+                  uint position_width, uint level_width, uint level,
+                  uint log_way, const ORAMConstParams& params)
       :
 #ifdef FAST_MEASURE
-        Gadget(caller, link_type, T, measure_multiplier),
+        Gadget(caller, link_type, T_bounds[level], measure_multiplier),
 #else
-        Gadget(caller, link_type, T),
+        Gadget(caller, link_type, T_bounds[level]),
 #endif
         v_addr_width(v_addr_width),
         word_width(word_width),
+        payload_width(payload_width),
         level_width(level_width),
         position_width(position_width),
         level(level),
@@ -838,29 +921,29 @@ struct CircuitORAMTree : Gadget {
           Word::constant(self, position_width, (uint64_t)0));
       bkt_v_addrs.push_back(Word::constant(self, v_addr_width, (uint64_t)0));
       bkt_datas.push_back(Word::constant(self, word_width, (uint64_t)0));
+      if (payload_width > 0) {
+        bkt_data_arith.push_back(ArithWord::constant(self, payload_width, 0));
+      }
     }
-
-    uint64_t T_child = (T + (1UL << log_way) - 1) >> log_way;
-    if (level == 0) {
-      // the maximum number of accesses to each child is the sum of
-      // initially
-      // and newly assigned elements to the physical memory space of the
-      // child
-      // plus the number of deterministic evictions to the child
-      T_child += 1UL << (position_width - log_way);
-    }
-    T_child = std::min(T, T_child);
 
     if (remain_level) {
+      // uint64_t T_child = T_bounds[level + 1];
       uint child_position_width = position_width - log_way;
       uint child_log_way = optimal_log_way(log_way, child_position_width);
       children = new Group<CircuitORAMTree, uint, uint, uint, uint, uint, uint,
-                           ORAMConstParams>(
-          self, std::vector<uint64_t>(1UL << log_way, T_child),
-          params.simd_link_threshold, v_addr_width, word_width,
-          child_position_width, level_width, level + 1, child_log_way, params);
+                           uint, ORAMConstParams>(
+          self, 1UL << log_way, T_bounds, params.simd_link_threshold,
+          v_addr_width, word_width, payload_width, child_position_width,
+          level_width, level + 1, child_log_way, params);
     }
     set_name("Circuit ORAM Tree level " + std::to_string(level));
+  }
+
+  void cleanup() override {
+    clear_and_release(bkt_data_arith);
+    clear_and_release(bkt_datas);
+    delete_link();
+    // flint_cleanup_all_threads();
   }
 
   ~CircuitORAMTree() {
@@ -883,6 +966,7 @@ struct CircuitORAM : DataType {
   uint position_width;  // the width of the position word
   uint v_addr_width;    // the width of the virtual address word
   uint word_width;      // the width of the data word
+  uint payload_width;   // the width of the arith data word
   uint level_width;     // the width of the total level of the tree
   uint evict_freq;      // the frequency of additional eviction per read
   uint log_way;  // the maximum log of the number of children at each level
@@ -920,7 +1004,11 @@ struct CircuitORAM : DataType {
         Word::input_g(owner, position_width, (uint64_t)0);
     const Word& read_init_hold_v_addr =
         Word::input_g(owner, v_addr_width, (uint64_t)0);
-    const Word& read_init_hold = Word::input_g(owner, word_width, (uint64_t)0);
+    Word read_init_hold = Word::input_g(owner, word_width, (uint64_t)0);
+    if (payload_width > 0) {
+      read_init_hold.set_payload(
+          ArithWord::constant(owner, payload_width, (uint64_t)0));
+    }
     FuncInput read_access_input = {read_init_hold_valid,
                                    read_init_hold_position,
                                    read_init_hold_v_addr, read_init_hold};
@@ -963,8 +1051,11 @@ struct CircuitORAM : DataType {
             Word::input_g(owner, position_width, (uint64_t)0);
         const Word& evict_init_hold_v_addr =
             Word::input_g(owner, v_addr_width, (uint64_t)0);
-        const Word& evict_init_hold =
-            Word::input_g(owner, word_width, (uint64_t)0);
+        Word evict_init_hold = Word::input_g(owner, word_width, (uint64_t)0);
+        if (payload_width > 0) {
+          evict_init_hold.set_payload(
+              ArithWord::constant(owner, payload_width, (uint64_t)0));
+        }
         FuncInput evict_access_input = {
             evict_init_hold_valid, evict_init_hold_position,
             evict_init_hold_v_addr, evict_init_hold};
@@ -990,7 +1081,13 @@ struct CircuitORAM : DataType {
     Word old_data_copy;
     UpdateFuncType update_func = [&](const Word& old_data) {
       old_data_copy = old_data;
-      return Word::mux(is_write, old_data, new_data);
+      Word out_word = Word::mux(is_write, old_data, new_data);
+      if (old_data.has_payload() || new_data.has_payload()) {
+        const ArithWord& out_arith_word = ArithWord::mux(
+            is_write, old_data.get_payload(), new_data.get_payload());
+        out_word.set_payload(out_arith_word);
+      }
+      return out_word;
     };
     access(position, v_addr, new_position, update_func);
     return old_data_copy;
@@ -1081,30 +1178,47 @@ struct CircuitORAM : DataType {
     this->evict_counter = evict_counter;
   }
 
-  CircuitORAM(Gadget* owner, uint64_t memory_space, uint word_width, uint64_t T,
-              const ORAMConstParams& params)
+  CircuitORAM(Gadget* owner, uint64_t memory_space, uint word_width,
+              uint payload_width, uint64_t T, const ORAMConstParams& params)
       : DataType(owner),
         memory_space(memory_space),
         num_leaves(memory_space),
         position_width(log2ceil(memory_space)),
         v_addr_width(log2ceil(memory_space)),
         word_width(word_width),
+        payload_width(payload_width),
         evict_freq(params.evict_freq),
         evict_counter(0) {
     log_way =
         CircuitORAMTree::optimal_log_way(params.max_log_way, position_width);
     uint total_level = (position_width + log_way - 1) / log_way;
     level_width = bit_width(total_level);
-    oram = new CircuitORAMTree(owner, DIRECT, T * (1 + evict_freq),
+    uint64_t N = T + memory_space;
+    std::vector<uint64_t> bounds;
+    uint child_position_width = position_width;
+    uint child_log_way = log_way;
+    uint new_child_log_way = log_way;
+    for (uint64_t K = 1; K <= N; K *= (1UL << child_log_way)) {
+      child_log_way = new_child_log_way;
+      child_position_width -= child_log_way;
+      new_child_log_way =
+          CircuitORAMTree::optimal_log_way(log_way, child_position_width);
+      uint64_t bound = ceil(chernoff_upper_bound(N, T, K));
+      std::cout << "K = " << K << ", bound (not counting evict) = " << bound
+                << std::endl;
+      bound += evict_freq * ((T + K - 1) / K);
+      bounds.push_back(bound);
+    }
+    oram = new CircuitORAMTree(owner, DIRECT, bounds,
 #ifdef FAST_MEASURE
                                1,
 #endif
-                               v_addr_width, word_width, position_width,
-                               level_width, 0, log_way, params);
+                               v_addr_width, word_width, payload_width,
+                               position_width, level_width, 0, log_way, params);
   }
 
   void print_tree() { oram->print_tree(); }
 
   ~CircuitORAM() { delete oram; }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

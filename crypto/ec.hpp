@@ -9,7 +9,7 @@
 #include "rand.hpp"
 #include "util.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 /**
  * @brief A finite field element optimized for modular multiplication and
@@ -703,4 +703,4 @@ struct ECInitializer {
   ECInitializer();
   ~ECInitializer();
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

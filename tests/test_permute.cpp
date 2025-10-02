@@ -15,7 +15,7 @@ std::vector<size_t> generate_random_permutation(size_t size) {
   }
 
   // Shuffle the permutation
-  PicoGRAM::secure_permute(permutation.begin(), permutation.end());
+  ZebraGRAM::secure_permute(permutation.begin(), permutation.end());
 
   return permutation;
 }
@@ -32,7 +32,7 @@ TEST(PermuteVector, Waksman) {
     std::vector<size_t> random_permutation = generate_random_permutation(size);
 
     // Apply the AS-Waksman permutation
-    std::vector<int> permuted_vector = PicoGRAM::waksman_permute_vector(
+    std::vector<int> permuted_vector = ZebraGRAM::waksman_permute_vector(
         original_vector, random_permutation, [](bool cond, int &a, int &b) {
           if (cond) std::swap(a, b);
         });

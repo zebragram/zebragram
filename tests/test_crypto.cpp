@@ -5,7 +5,7 @@
 #include "ec.hpp"
 #include "hash.hpp"
 #include "three_halves.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 
 TEST(TestCrypto, hash) {
   Label label = Label::random();
@@ -467,7 +467,6 @@ TEST(TestCrypto, ec_perf_gen_pow) {
   std::chrono::duration<double> diff = end - start;
   std::cout << "EC generator power time: " << diff.count() / r * 1e6 << " us\n";
 }
-
 
 TEST(TestCrypto, ec_perf_par32) {
 #pragma omp parallel for

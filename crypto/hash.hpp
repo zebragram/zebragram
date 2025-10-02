@@ -8,7 +8,7 @@
 #include "ec.hpp"
 #include "label.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 /**
  * @brief Compute the hash of a label using fixed-key AES
@@ -126,4 +126,13 @@ void dec_ec_point(ECPoint& point, const Label& key,
  * @return MAC
  */
 MAC Mac(const Label& label);
-}  // namespace PicoGRAM
+
+/**
+ * @brief Pseudorandom number generator using AES in counter mode
+ *
+ * @param seed the seed label
+ * @param output the output byte array
+ * @param length the length of the output byte array
+ */
+void prng(const Label& seed, uint8_t* output, size_t length);
+}  // namespace ZebraGRAM

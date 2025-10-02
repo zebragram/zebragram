@@ -2,6 +2,6 @@
 
 #include "gadget.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 Mode DataType::get_mode() const { return owner->get_mode(); }
 }
