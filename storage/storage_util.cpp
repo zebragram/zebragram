@@ -17,7 +17,7 @@
 #include <cstring>
 #endif
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 std::vector<std::vector<uint8_t>> shared_memory;
 std::unordered_map<std::string, int> filename_to_fid;
@@ -67,6 +67,23 @@ int open_file(const char* filename, size_t size) {
   return fd;
 }
 
+ssize_t rewind_write(int fid, uint64_t offset) {
+#if STORAGE_TYPE == SHARED_MEMORY
+  if ((size_t)fid >= shared_memory.size()) {
+    std::cerr << "Invalid file descriptor\n";
+    return -1;
+  }
+  if (offset > shared_memory[fid].size()) {
+    std::cerr << "Invalid offset when rewind\n";
+    return -1;
+  }
+  shared_memory[fid].resize(shared_memory[fid].size() - offset);
+  return shared_memory[fid].size();
+#else
+  return lseek64(fid, offset, SEEK_SET);
+#endif
+}
+
 ssize_t write(int fid, const void* data, ssize_t size) {
 #ifdef USE_EMP_CHANNEL
   if (Channel::is_channel_id(fid)) {
@@ -86,6 +103,17 @@ ssize_t write(int fid, const void* data, ssize_t size) {
 #endif
 }
 
+ssize_t seek(int fid, uint64_t offset) {
+#if STORAGE_TYPE != SHARED_MEMORY
+  return lseek64(fid, offset, SEEK_SET);
+#else
+  // avoid unused variable warning
+  (void)fid;
+  (void)offset;
+  return 0;
+#endif
+}
+
 // shadow pread
 ssize_t pread(int fid, void* data, ssize_t size, uint64_t offset) {
 #if STORAGE_TYPE == SHARED_MEMORY
@@ -94,7 +122,7 @@ ssize_t pread(int fid, void* data, ssize_t size, uint64_t offset) {
     return -1;
   }
   if (offset + size > shared_memory[fid].size()) {
-    std::cerr << "Invalid offset\n";
+    std::cerr << "Invalid offset during pread\n";
     return -1;
   }
   memcpy(data, shared_memory[fid].data() + offset, size);
@@ -122,4 +150,4 @@ int close_file(int fid) {
   return ::close(fid);
 #endif
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

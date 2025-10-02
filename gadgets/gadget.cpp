@@ -3,7 +3,13 @@
 #include "func.hpp"
 #include "link.hpp"
 
-namespace PicoGRAM {
+#ifdef MAX_GADGET_TIME
+// record the number of lost bytes and add them back when calculating the total
+// gc size
+uint64_t overwritten_bytes = 0;
+#endif
+
+namespace ZebraGRAM {
 Gadget::Gadget(Mode mode, uint64_t T) : BaseGadget(mode, T) {
   Assert(mode != DEFAULT);
 }
@@ -82,6 +88,21 @@ GCPtr Gadget::garble(const GCPtr& begin) {
     gc_ptr = base_cond_link->garble(gc_ptr);
   }
 
+#ifdef MAX_GADGET_TIME
+  GCPtr test_end_gc_ptr = gc_ptr;
+  bool overwrote = false;
+#ifdef TOTAL_TIME
+  // use chernoff bound to estimate the maximum number of times a gadget is
+  // called in TOTAL_TIME timesteps with high probability const double mu =
+  // (double)T * MAX_GADGET_TIME / TOTAL_TIME; const double delta = sqrt(30.0 /
+  // mu); const uint64_t chernoff_bound = ceil(mu * (1 + delta)); const uint64_t
+  // threshold_time = std::min((uint64_t)MAX_GADGET_TIME, chernoff_bound);
+  const uint64_t threshold_time = chernoff_upper_bound(
+      TOTAL_TIME, MAX_GADGET_TIME, (double)TOTAL_TIME / T, -40);
+#else
+  const uint64_t threshold_time = MAX_GADGET_TIME;
+#endif
+#endif
   init_gc_ptr(gc_ptr);
   init_bit_offset = caller ? caller->get_bit_offset() : 0;
   t = -1;
@@ -96,11 +117,34 @@ GCPtr Gadget::garble(const GCPtr& begin) {
     } else {
       ++t;  // TODO: remove this line
     }
+#ifdef PRINT_PROGRESS_GRANULARITY
+    uint64_t curr_gc_offset = get_gc().get_offset();
+#ifdef MAX_GADGET_TIME
+    curr_gc_offset += overwritten_bytes;
+#endif
+    print_curr_gc_offset(curr_gc_offset);
+#endif
+
+#ifdef MAX_GADGET_TIME
+    if (t == threshold_time) {
+      test_end_gc_ptr = get_gc();
+      overwrote = true;
+    }
+#endif
   }
+#ifdef MAX_GADGET_TIME
+  if (overwrote) {
+    uint64_t local_overwritten_bytes =
+        get_gc().get_offset() - test_end_gc_ptr.get_offset();
+    overwritten_bytes += local_overwritten_bytes;
+    this->gc.rewind_write(local_overwritten_bytes);
+  }
+#endif
 
   if (get_simd_link()) {
     get_simd_link()->release();  // release the SIMD labels
   }
+  cleanup();
 
   gc_ptr = garble_callees();
 
@@ -170,6 +214,8 @@ const Link* Gadget::get_link() const {
 void Gadget::get_init_gc_ptrs_helper(std::vector<GCPtr>& init_gc_ptrs) const {
   if (get_link_type() == SIMD_COND || get_link_type() == COND) {
     init_gc_ptrs.push_back(get_base_conditional_link()->get_init_gc());
+  } else if (link_init_gc.get_fid() != -1) {
+    init_gc_ptrs.push_back(link_init_gc);
   }
   init_gc_ptrs.push_back(init_gc);
   for (Gadget* callee : callee_registry) {
@@ -191,11 +237,16 @@ Gadget::GCPtrConstIter Gadget::set_init_gc_ptrs_helper(
                          });
 }
 
-Gadget::~Gadget() {
+void Gadget::delete_link() {
   if (caller_link) {
+    if (get_link_type() == SIMD_COND || get_link_type() == COND) {
+      link_init_gc = get_base_conditional_link()->get_init_gc();
+    }
     delete caller_link;
     caller_link = NULL;
   }
 }
 
-}  // namespace PicoGRAM
+Gadget::~Gadget() { delete_link(); }
+
+}  // namespace ZebraGRAM

@@ -1,5 +1,5 @@
 #include "key_manager.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 KeyManager key_manager;
 }

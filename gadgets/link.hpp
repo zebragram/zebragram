@@ -5,7 +5,7 @@
 #include "gadget.hpp"
 #include "simd_word.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief Base-type of links, which connects two gadgets: a parent gadget and a
  * child gadget. The parent gadget may call the child gadget at each timestep
@@ -27,9 +27,9 @@ struct BaseLink {
    * timezone, or in reverse. Intended to be overriden.
    *
    * @param input
-   * @return std::vector<Word>
+   * @return FuncOutput
    */
-  virtual std::vector<Word> translate(const std::vector<Word>& input) {
+  virtual FuncOutput translate(FuncInput input) {
     // must be overriden to call
     Assert(false);
     return input;
@@ -64,10 +64,10 @@ struct DirectLink : BaseLink {
    * timezone
    *
    * @param input
-   * @return std::vector<Word>
+   * @return FuncOutput
    */
-  std::vector<Word> translate(const std::vector<Word>& inputs) override {
-    std::vector<Word> outputs = inputs;
+  FuncOutput translate(FuncInput inputs) override {
+    FuncOutput outputs = inputs;
     if (!inputs.empty()) {
       Gadget* output_owner =
           inputs[0].get_owner() == callee ? callee->get_caller() : callee;
@@ -147,12 +147,15 @@ struct Link : BaseConditionalLink {
   // used by the garbler
   // before garble the link, records the words of the parents
   // after garble the link, records the words of the children
-  std::vector<std::vector<Word>> port_words;
+  std::vector<FuncOutput> port_words;
   uint64_t curr_retrieved_t = 0;
   uint64_t curr_retrieved_word_idx = 0;
   uint64_t curr_bit_offset = 0;
+  uint64_t curr_gc_offset = 0;
+  uint64_t curr_arith_digit_offset = 0;
 
-  uint64_t word_width_sum = -1;
+  uint32_t word_width_sum = -1;
+  uint32_t arith_word_width_sum = -1;
 
  public:
   explicit Link(Gadget* callee);
@@ -171,16 +174,16 @@ struct Link : BaseConditionalLink {
    *
    * @param parent_words
    */
-  void add_caller_words(const std::vector<Word>& parent_words);
+  void add_caller_words(FuncInput parent_words);
 
   /**
    * @brief Called by the garbler to retrieve the next num input/output words on
    * the callee side after the link is garbled
    *
    * @param num
-   * @return std::vector<Word>
+   * @return FuncOutput
    */
-  std::vector<Word> retrieve_callee_words(uint64_t num);
+  FuncOutput retrieve_callee_words(uint64_t num);
 
   /**
    * Should be called after all the callee words are retrieved to save memory
@@ -194,7 +197,7 @@ struct Link : BaseConditionalLink {
    * @param input
    * @return std::vector<Word>
    */
-  std::vector<Word> translate(const std::vector<Word>& input) override;
+  FuncOutput translate(FuncInput input) override;
 
   /**
    * @brief Garble the link for T timesteps, and compute the SIMD labels for
@@ -208,7 +211,7 @@ struct Link : BaseConditionalLink {
 
 /**
  * @brief A SIMD link is used when the call may be real or fake (inactive).
- * The SIMD link leverages the optimized stack in PicoGRAM.
+ * The SIMD link leverages the optimized stack in ZebraGRAM.
  *
  */
 struct SIMDLink : BaseConditionalLink {
@@ -274,4 +277,4 @@ struct SIMDLink : BaseConditionalLink {
 
   ~SIMDLink() {}
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

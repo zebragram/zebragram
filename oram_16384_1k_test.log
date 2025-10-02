@@ -1,0 +1,519 @@
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Wed Sep 24 17:10:58 2025
+Garbled 4295689017 bytes so far, current time: Wed Sep 24 17:12:18 2025
+Garbled 8591064679 bytes so far, current time: Wed Sep 24 17:13:15 2025
+Garbled 12885435528 bytes so far, current time: Wed Sep 24 17:14:10 2025
+Garbled 17179879961 bytes so far, current time: Wed Sep 24 17:15:15 2025
+Garbled 21475586023 bytes so far, current time: Wed Sep 24 17:16:11 2025
+Garbled 25770229864 bytes so far, current time: Wed Sep 24 17:17:06 2025
+Garbled 30064877977 bytes so far, current time: Wed Sep 24 17:18:00 2025
+Garbled 34360704775 bytes so far, current time: Wed Sep 24 17:18:54 2025
+Garbled 38655348616 bytes so far, current time: Wed Sep 24 17:19:49 2025
+Garbled 42949838784 bytes so far, current time: Wed Sep 24 17:20:23 2025
+Garbled 47244766740 bytes so far, current time: Wed Sep 24 17:21:15 2025
+Garbled 51539638069 bytes so far, current time: Wed Sep 24 17:22:04 2025
+Garbled 55834577962 bytes so far, current time: Wed Sep 24 17:22:52 2025
+Garbled 60129588548 bytes so far, current time: Wed Sep 24 17:23:44 2025
+Garbled 64424563168 bytes so far, current time: Wed Sep 24 17:24:35 2025
+Garbled 68719503764 bytes so far, current time: Wed Sep 24 17:25:16 2025
+Garbled 73014542959 bytes so far, current time: Wed Sep 24 17:26:05 2025
+Garbled 77309436219 bytes so far, current time: Wed Sep 24 17:26:57 2025
+Garbled 81604444185 bytes so far, current time: Wed Sep 24 17:27:47 2025
+Garbled 85899364007 bytes so far, current time: Wed Sep 24 17:28:36 2025
+Garbled 90194369594 bytes so far, current time: Wed Sep 24 17:29:25 2025
+Garbled 94489391066 bytes so far, current time: Wed Sep 24 17:30:17 2025
+Garbled 98784293409 bytes so far, current time: Wed Sep 24 17:30:54 2025
+Garbled 103079247267 bytes so far, current time: Wed Sep 24 17:31:47 2025
+Garbled 107374198562 bytes so far, current time: Wed Sep 24 17:32:36 2025
+Garbled 111669171006 bytes so far, current time: Wed Sep 24 17:33:25 2025
+Garbled 115964184018 bytes so far, current time: Wed Sep 24 17:34:17 2025
+Garbled 120259087908 bytes so far, current time: Wed Sep 24 17:35:07 2025
+Garbled 124554091144 bytes so far, current time: Wed Sep 24 17:35:50 2025
+Garbled 128849169618 bytes so far, current time: Wed Sep 24 17:36:36 2025
+Garbled 133144042597 bytes so far, current time: Wed Sep 24 17:37:28 2025
+Garbled 137438963176 bytes so far, current time: Wed Sep 24 17:38:18 2025
+Garbled 141733982060 bytes so far, current time: Wed Sep 24 17:39:08 2025
+Garbled 146028899052 bytes so far, current time: Wed Sep 24 17:39:57 2025
+Garbled 150323973755 bytes so far, current time: Wed Sep 24 17:40:50 2025
+GC used for testing: 5.8907 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.80164e+06 ms
+avg time per time step: 109.963 ms
+parallel time: 1.0695e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+eval time: 74433 ms
+avg time per time step: 1488 ms
+parallel time: 70375 ms
+[       OK ] CircuitORAM.RandPayload1kLarge (1892335 ms)
+[----------] 1 test from CircuitORAM (1892335 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1892336 ms total)
+[  PASSED  ] 1 test.
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Wed Sep 24 20:07:03 2025
+Garbled 4295689017 bytes so far, current time: Wed Sep 24 20:08:00 2025
+Garbled 8591064679 bytes so far, current time: Wed Sep 24 20:08:54 2025
+Garbled 12885435528 bytes so far, current time: Wed Sep 24 20:09:47 2025
+Garbled 17179879961 bytes so far, current time: Wed Sep 24 20:10:41 2025
+Garbled 21475586023 bytes so far, current time: Wed Sep 24 20:11:34 2025
+Garbled 25770229864 bytes so far, current time: Wed Sep 24 20:12:28 2025
+Garbled 30064877977 bytes so far, current time: Wed Sep 24 20:13:22 2025
+Garbled 34360704775 bytes so far, current time: Wed Sep 24 20:14:15 2025
+Garbled 38655348616 bytes so far, current time: Wed Sep 24 20:15:09 2025
+Garbled 42949838784 bytes so far, current time: Wed Sep 24 20:15:45 2025
+Garbled 47244766740 bytes so far, current time: Wed Sep 24 20:16:36 2025
+Garbled 51539638069 bytes so far, current time: Wed Sep 24 20:17:25 2025
+Garbled 55834577962 bytes so far, current time: Wed Sep 24 20:18:13 2025
+Garbled 60129588548 bytes so far, current time: Wed Sep 24 20:19:05 2025
+Garbled 64424563168 bytes so far, current time: Wed Sep 24 20:19:55 2025
+Garbled 68719503764 bytes so far, current time: Wed Sep 24 20:20:36 2025
+Garbled 73014542959 bytes so far, current time: Wed Sep 24 20:21:20 2025
+Garbled 77309436219 bytes so far, current time: Wed Sep 24 20:22:11 2025
+Garbled 81604444185 bytes so far, current time: Wed Sep 24 20:23:01 2025
+Garbled 85899364007 bytes so far, current time: Wed Sep 24 20:23:49 2025
+Garbled 90194369594 bytes so far, current time: Wed Sep 24 20:24:38 2025
+Garbled 94489391066 bytes so far, current time: Wed Sep 24 20:25:29 2025
+Garbled 98784293409 bytes so far, current time: Wed Sep 24 20:26:06 2025
+Garbled 103079247267 bytes so far, current time: Wed Sep 24 20:26:58 2025
+Garbled 107374198562 bytes so far, current time: Wed Sep 24 20:27:47 2025
+Garbled 111669171006 bytes so far, current time: Wed Sep 24 20:28:37 2025
+Garbled 115964184018 bytes so far, current time: Wed Sep 24 20:29:28 2025
+Garbled 120259087908 bytes so far, current time: Wed Sep 24 20:30:17 2025
+Garbled 124554091144 bytes so far, current time: Wed Sep 24 20:31:00 2025
+Garbled 128849169618 bytes so far, current time: Wed Sep 24 20:31:46 2025
+Garbled 133144042597 bytes so far, current time: Wed Sep 24 20:32:39 2025
+Garbled 137438963176 bytes so far, current time: Wed Sep 24 20:33:28 2025
+Garbled 141733982060 bytes so far, current time: Wed Sep 24 20:34:17 2025
+Garbled 146028899052 bytes so far, current time: Wed Sep 24 20:35:06 2025
+Garbled 150323973755 bytes so far, current time: Wed Sep 24 20:35:59 2025
+GC used for testing: 23.4261 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.74613e+06 ms
+avg time per time step: 106.575 ms
+parallel time: 1.0165e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Wed Sep 24 22:22:14 2025
+Garbled 4295689017 bytes so far, current time: Wed Sep 24 22:23:11 2025
+Garbled 8591064679 bytes so far, current time: Wed Sep 24 22:24:04 2025
+Garbled 12885435528 bytes so far, current time: Wed Sep 24 22:24:58 2025
+Garbled 17179879961 bytes so far, current time: Wed Sep 24 22:25:52 2025
+Garbled 21475586023 bytes so far, current time: Wed Sep 24 22:26:45 2025
+Garbled 25770229864 bytes so far, current time: Wed Sep 24 22:27:39 2025
+Garbled 30064877977 bytes so far, current time: Wed Sep 24 22:28:33 2025
+Garbled 34360704775 bytes so far, current time: Wed Sep 24 22:29:27 2025
+Garbled 38655348616 bytes so far, current time: Wed Sep 24 22:30:20 2025
+Garbled 42949838784 bytes so far, current time: Wed Sep 24 22:30:56 2025
+Garbled 47244766740 bytes so far, current time: Wed Sep 24 22:31:45 2025
+Garbled 51539638069 bytes so far, current time: Wed Sep 24 22:32:34 2025
+Garbled 55834577962 bytes so far, current time: Wed Sep 24 22:33:22 2025
+Garbled 60129588548 bytes so far, current time: Wed Sep 24 22:34:14 2025
+Garbled 64424563168 bytes so far, current time: Wed Sep 24 22:35:04 2025
+Garbled 68719503764 bytes so far, current time: Wed Sep 24 22:35:45 2025
+Garbled 73014542959 bytes so far, current time: Wed Sep 24 22:36:33 2025
+Garbled 77309436219 bytes so far, current time: Wed Sep 24 22:37:25 2025
+Garbled 81604444185 bytes so far, current time: Wed Sep 24 22:38:14 2025
+Garbled 85899364007 bytes so far, current time: Wed Sep 24 22:39:02 2025
+Garbled 90194369594 bytes so far, current time: Wed Sep 24 22:39:51 2025
+Garbled 94489391066 bytes so far, current time: Wed Sep 24 22:40:42 2025
+Garbled 98784293409 bytes so far, current time: Wed Sep 24 22:41:19 2025
+Garbled 103079247267 bytes so far, current time: Wed Sep 24 22:42:12 2025
+Garbled 107374198562 bytes so far, current time: Wed Sep 24 22:43:01 2025
+Garbled 111669171006 bytes so far, current time: Wed Sep 24 22:43:51 2025
+Garbled 115964184018 bytes so far, current time: Wed Sep 24 22:44:43 2025
+Garbled 120259087908 bytes so far, current time: Wed Sep 24 22:45:32 2025
+Garbled 124554091144 bytes so far, current time: Wed Sep 24 22:46:13 2025
+Garbled 128849169618 bytes so far, current time: Wed Sep 24 22:47:00 2025
+Garbled 133144042597 bytes so far, current time: Wed Sep 24 22:47:52 2025
+Garbled 137438963176 bytes so far, current time: Wed Sep 24 22:48:42 2025
+Garbled 141733982060 bytes so far, current time: Wed Sep 24 22:49:31 2025
+Garbled 146028899052 bytes so far, current time: Wed Sep 24 22:50:19 2025
+Garbled 150323973755 bytes so far, current time: Wed Sep 24 22:51:12 2025
+GC used for testing: 42.8102 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.74842e+06 ms
+avg time per time step: 106.715 ms
+parallel time: 1.02165e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Wed Sep 24 23:01:08 2025
+Garbled 4295689017 bytes so far, current time: Wed Sep 24 23:02:05 2025
+Garbled 8591064679 bytes so far, current time: Wed Sep 24 23:02:59 2025
+Garbled 12885435528 bytes so far, current time: Wed Sep 24 23:03:52 2025
+Garbled 17179879961 bytes so far, current time: Wed Sep 24 23:04:47 2025
+Garbled 21475586023 bytes so far, current time: Wed Sep 24 23:05:41 2025
+Garbled 25770229864 bytes so far, current time: Wed Sep 24 23:06:34 2025
+Garbled 30064877977 bytes so far, current time: Wed Sep 24 23:07:28 2025
+Garbled 34360704775 bytes so far, current time: Wed Sep 24 23:08:22 2025
+Garbled 38655348616 bytes so far, current time: Wed Sep 24 23:09:16 2025
+Garbled 42949838784 bytes so far, current time: Wed Sep 24 23:09:52 2025
+Garbled 47244766740 bytes so far, current time: Wed Sep 24 23:10:43 2025
+Garbled 51539638069 bytes so far, current time: Wed Sep 24 23:11:32 2025
+Garbled 55834577962 bytes so far, current time: Wed Sep 24 23:12:20 2025
+Garbled 60129588548 bytes so far, current time: Wed Sep 24 23:13:12 2025
+Garbled 64424563168 bytes so far, current time: Wed Sep 24 23:14:02 2025
+Garbled 68719503764 bytes so far, current time: Wed Sep 24 23:14:43 2025
+Garbled 73014542959 bytes so far, current time: Wed Sep 24 23:15:31 2025
+Garbled 77309436219 bytes so far, current time: Wed Sep 24 23:16:23 2025
+Garbled 81604444185 bytes so far, current time: Wed Sep 24 23:17:13 2025
+Garbled 85899364007 bytes so far, current time: Wed Sep 24 23:18:01 2025
+Garbled 90194369594 bytes so far, current time: Wed Sep 24 23:18:49 2025
+Garbled 94489391066 bytes so far, current time: Wed Sep 24 23:19:41 2025
+Garbled 98784293409 bytes so far, current time: Wed Sep 24 23:20:18 2025
+Garbled 103079247267 bytes so far, current time: Wed Sep 24 23:21:11 2025
+Garbled 107374198562 bytes so far, current time: Wed Sep 24 23:22:00 2025
+Garbled 111669171006 bytes so far, current time: Wed Sep 24 23:22:49 2025
+Garbled 115964184018 bytes so far, current time: Wed Sep 24 23:23:40 2025
+Garbled 120259087908 bytes so far, current time: Wed Sep 24 23:24:30 2025
+Garbled 124554091144 bytes so far, current time: Wed Sep 24 23:25:14 2025
+Garbled 128849169618 bytes so far, current time: Wed Sep 24 23:26:01 2025
+Garbled 133144042597 bytes so far, current time: Wed Sep 24 23:26:54 2025
+Garbled 137438963176 bytes so far, current time: Wed Sep 24 23:27:44 2025
+Garbled 141733982060 bytes so far, current time: Wed Sep 24 23:28:33 2025
+Garbled 146028899052 bytes so far, current time: Wed Sep 24 23:29:23 2025
+Garbled 150323973755 bytes so far, current time: Wed Sep 24 23:30:17 2025
+GC used for testing: 52.2376 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.75936e+06 ms
+avg time per time step: 107.383 ms
+parallel time: 1.02943e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+eval time: 77038 ms
+avg time per time step: 1540 ms
+parallel time: 72655 ms
+[       OK ] CircuitORAM.RandPayload1kLarge (1853841 ms)
+[----------] 1 test from CircuitORAM (1853841 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1853841 ms total)
+[  PASSED  ] 1 test.
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Thu Sep 25 01:08:23 2025
+Garbled 4295689017 bytes so far, current time: Thu Sep 25 01:09:19 2025
+Garbled 8591064679 bytes so far, current time: Thu Sep 25 01:10:12 2025
+Garbled 12885435528 bytes so far, current time: Thu Sep 25 01:11:06 2025
+Garbled 17179879961 bytes so far, current time: Thu Sep 25 01:11:59 2025
+Garbled 21475586023 bytes so far, current time: Thu Sep 25 01:12:53 2025
+Garbled 25770229864 bytes so far, current time: Thu Sep 25 01:13:46 2025
+Garbled 30064877977 bytes so far, current time: Thu Sep 25 01:14:40 2025
+Garbled 34360704775 bytes so far, current time: Thu Sep 25 01:15:34 2025
+Garbled 38655348616 bytes so far, current time: Thu Sep 25 01:16:27 2025
+Garbled 42949838784 bytes so far, current time: Thu Sep 25 01:17:02 2025
+Garbled 47244766740 bytes so far, current time: Thu Sep 25 01:17:51 2025
+Garbled 51539638069 bytes so far, current time: Thu Sep 25 01:18:37 2025
+Garbled 55834577962 bytes so far, current time: Thu Sep 25 01:19:24 2025
+Garbled 60129588548 bytes so far, current time: Thu Sep 25 01:20:16 2025
+Garbled 64424563168 bytes so far, current time: Thu Sep 25 01:21:06 2025
+Garbled 68719503764 bytes so far, current time: Thu Sep 25 01:21:48 2025
+Garbled 73014542959 bytes so far, current time: Thu Sep 25 01:22:36 2025
+Garbled 77309436219 bytes so far, current time: Thu Sep 25 01:23:28 2025
+Garbled 81604444185 bytes so far, current time: Thu Sep 25 01:24:17 2025
+Garbled 85899364007 bytes so far, current time: Thu Sep 25 01:25:06 2025
+Garbled 90194369594 bytes so far, current time: Thu Sep 25 01:25:54 2025
+Garbled 94489391066 bytes so far, current time: Thu Sep 25 01:26:46 2025
+Garbled 98784293409 bytes so far, current time: Thu Sep 25 01:27:23 2025
+Garbled 103079247267 bytes so far, current time: Thu Sep 25 01:28:16 2025
+Garbled 107374198562 bytes so far, current time: Thu Sep 25 01:29:05 2025
+Garbled 111669171006 bytes so far, current time: Thu Sep 25 01:29:54 2025
+Garbled 115964184018 bytes so far, current time: Thu Sep 25 01:30:46 2025
+Garbled 120259087908 bytes so far, current time: Thu Sep 25 01:31:35 2025
+Garbled 124554091144 bytes so far, current time: Thu Sep 25 01:32:17 2025
+Garbled 128849169618 bytes so far, current time: Thu Sep 25 01:33:04 2025
+Garbled 133144042597 bytes so far, current time: Thu Sep 25 01:33:56 2025
+Garbled 137438963176 bytes so far, current time: Thu Sep 25 01:34:46 2025
+Garbled 141733982060 bytes so far, current time: Thu Sep 25 01:35:35 2025
+Garbled 146028899052 bytes so far, current time: Thu Sep 25 01:36:24 2025
+Garbled 150323973755 bytes so far, current time: Thu Sep 25 01:37:17 2025
+GC used for testing: 46.0160 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.74429e+06 ms
+avg time per time step: 106.463 ms
+parallel time: 1.01479e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Thu Sep 25 02:15:33 2025
+Garbled 4295689017 bytes so far, current time: Thu Sep 25 02:16:31 2025
+Garbled 8591064679 bytes so far, current time: Thu Sep 25 02:17:25 2025
+Garbled 12885435528 bytes so far, current time: Thu Sep 25 02:18:18 2025
+Garbled 17179879961 bytes so far, current time: Thu Sep 25 02:19:11 2025
+Garbled 21475586023 bytes so far, current time: Thu Sep 25 02:20:05 2025
+Garbled 25770229864 bytes so far, current time: Thu Sep 25 02:20:59 2025
+Garbled 30064877977 bytes so far, current time: Thu Sep 25 02:21:53 2025
+Garbled 34360704775 bytes so far, current time: Thu Sep 25 02:22:47 2025
+Garbled 38655348616 bytes so far, current time: Thu Sep 25 02:23:41 2025
+Garbled 42949838784 bytes so far, current time: Thu Sep 25 02:24:16 2025
+Garbled 47244766740 bytes so far, current time: Thu Sep 25 02:25:07 2025
+Garbled 51539638069 bytes so far, current time: Thu Sep 25 02:25:57 2025
+Garbled 55834577962 bytes so far, current time: Thu Sep 25 02:26:44 2025
+Garbled 60129588548 bytes so far, current time: Thu Sep 25 02:27:36 2025
+Garbled 64424563168 bytes so far, current time: Thu Sep 25 02:28:27 2025
+Garbled 68719503764 bytes so far, current time: Thu Sep 25 02:29:08 2025
+Garbled 73014542959 bytes so far, current time: Thu Sep 25 02:29:55 2025
+Garbled 77309436219 bytes so far, current time: Thu Sep 25 02:30:47 2025
+Garbled 81604444185 bytes so far, current time: Thu Sep 25 02:31:37 2025
+Garbled 85899364007 bytes so far, current time: Thu Sep 25 02:32:26 2025
+Garbled 90194369594 bytes so far, current time: Thu Sep 25 02:33:14 2025
+Garbled 94489391066 bytes so far, current time: Thu Sep 25 02:34:06 2025
+Garbled 98784293409 bytes so far, current time: Thu Sep 25 02:34:42 2025
+Garbled 103079247267 bytes so far, current time: Thu Sep 25 02:35:35 2025
+Garbled 107374198562 bytes so far, current time: Thu Sep 25 02:36:25 2025
+Garbled 111669171006 bytes so far, current time: Thu Sep 25 02:37:14 2025
+Garbled 115964184018 bytes so far, current time: Thu Sep 25 02:38:06 2025
+Garbled 120259087908 bytes so far, current time: Thu Sep 25 02:38:55 2025
+Garbled 124554091144 bytes so far, current time: Thu Sep 25 02:39:37 2025
+Garbled 128849169618 bytes so far, current time: Thu Sep 25 02:40:24 2025
+Garbled 133144042597 bytes so far, current time: Thu Sep 25 02:41:16 2025
+Garbled 137438963176 bytes so far, current time: Thu Sep 25 02:42:06 2025
+Garbled 141733982060 bytes so far, current time: Thu Sep 25 02:42:55 2025
+Garbled 146028899052 bytes so far, current time: Thu Sep 25 02:43:44 2025
+Garbled 150323973755 bytes so far, current time: Thu Sep 25 02:44:36 2025
+GC used for testing: 6.0196 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.75268e+06 ms
+avg time per time step: 106.975 ms
+parallel time: 1.02252e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+eval time: 156322 ms
+avg time per time step: 1563 ms
+parallel time: 147545 ms
+[       OK ] CircuitORAM.RandPayload1kLarge (1925282 ms)
+[----------] 1 test from CircuitORAM (1925282 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1925282 ms total)
+[  PASSED  ] 1 test.
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *RandPayload1kLarge*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CircuitORAM
+[ RUN      ] CircuitORAM.RandPayload1kLarge
+T: 16384
+Before garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+After creating gadget: 
+Garbled 23321 bytes so far, current time: Thu Sep 25 03:32:47 2025
+Garbled 4295689017 bytes so far, current time: Thu Sep 25 03:33:44 2025
+Garbled 8591064679 bytes so far, current time: Thu Sep 25 03:34:38 2025
+Garbled 12885435528 bytes so far, current time: Thu Sep 25 03:35:32 2025
+Garbled 17179879961 bytes so far, current time: Thu Sep 25 03:36:25 2025
+Garbled 21475586023 bytes so far, current time: Thu Sep 25 03:37:19 2025
+Garbled 25770229864 bytes so far, current time: Thu Sep 25 03:38:13 2025
+Garbled 30064877977 bytes so far, current time: Thu Sep 25 03:39:06 2025
+Garbled 34360704775 bytes so far, current time: Thu Sep 25 03:40:00 2025
+Garbled 38655348616 bytes so far, current time: Thu Sep 25 03:40:54 2025
+Garbled 42949838784 bytes so far, current time: Thu Sep 25 03:41:29 2025
+Garbled 47244766740 bytes so far, current time: Thu Sep 25 03:42:20 2025
+Garbled 51539638069 bytes so far, current time: Thu Sep 25 03:43:09 2025
+Garbled 55834577962 bytes so far, current time: Thu Sep 25 03:43:56 2025
+Garbled 60129588548 bytes so far, current time: Thu Sep 25 03:44:48 2025
+Garbled 64424563168 bytes so far, current time: Thu Sep 25 03:45:38 2025
+Garbled 68719503764 bytes so far, current time: Thu Sep 25 03:46:19 2025
+Garbled 73014542959 bytes so far, current time: Thu Sep 25 03:47:06 2025
+Garbled 77309436219 bytes so far, current time: Thu Sep 25 03:47:58 2025
+Garbled 81604444185 bytes so far, current time: Thu Sep 25 03:48:48 2025
+Garbled 85899364007 bytes so far, current time: Thu Sep 25 03:49:36 2025
+Garbled 90194369594 bytes so far, current time: Thu Sep 25 03:50:25 2025
+Garbled 94489391066 bytes so far, current time: Thu Sep 25 03:51:16 2025
+Garbled 98784293409 bytes so far, current time: Thu Sep 25 03:51:52 2025
+Garbled 103079247267 bytes so far, current time: Thu Sep 25 03:52:45 2025
+Garbled 107374198562 bytes so far, current time: Thu Sep 25 03:53:34 2025
+Garbled 111669171006 bytes so far, current time: Thu Sep 25 03:54:23 2025
+Garbled 115964184018 bytes so far, current time: Thu Sep 25 03:55:15 2025
+Garbled 120259087908 bytes so far, current time: Thu Sep 25 03:56:04 2025
+Garbled 124554091144 bytes so far, current time: Thu Sep 25 03:56:46 2025
+Garbled 128849169618 bytes so far, current time: Thu Sep 25 03:57:33 2025
+Garbled 133144042597 bytes so far, current time: Thu Sep 25 03:58:25 2025
+Garbled 137438963176 bytes so far, current time: Thu Sep 25 03:59:14 2025
+Garbled 141733982060 bytes so far, current time: Thu Sep 25 04:00:04 2025
+Garbled 146028899052 bytes so far, current time: Thu Sep 25 04:00:52 2025
+Garbled 150323973755 bytes so far, current time: Thu Sep 25 04:01:45 2025
+GC used for testing: 10.1774 GB
+Actual GC used: 140.7238 GB
+garbling time: 1.74843e+06 ms
+avg time per time step: 106.715 ms
+parallel time: 1.02351e+06 ms
+After garbling: 
+K = 1, bound (not counting evict) = 16384
+K = 4, bound (not counting evict) = 4811
+K = 16, bound (not counting evict) = 1382
+K = 64, bound (not counting evict) = 435
+K = 256, bound (not counting evict) = 128
+K = 1024, bound (not counting evict) = 32
+K = 4096, bound (not counting evict) = 8
+K = 16384, bound (not counting evict) = 2
+K = 32768, bound (not counting evict) = 1
+eval time: 156333 ms
+avg time per time step: 1563 ms
+parallel time: 147553 ms
+[       OK ] CircuitORAM.RandPayload1kLarge (1921153 ms)
+[----------] 1 test from CircuitORAM (1921153 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1921153 ms total)
+[  PASSED  ] 1 test.

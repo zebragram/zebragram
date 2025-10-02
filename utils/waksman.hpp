@@ -135,7 +135,7 @@ bool valid_as_waksman_routing(const integer_permutation &permutation,
 
 }  // namespace libsnark
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 template <typename T, class CondSwap>
 std::vector<T> waksman_permute_vector(
@@ -202,6 +202,6 @@ std::vector<T> waksman_permute_vector(
 
   return current_vector;
 }
-};  // namespace PicoGRAM
+};  // namespace ZebraGRAM
 
 #endif  // AS_WAKSMAN_ROUTING_ALGORITHM_HPP_

@@ -1,7 +1,7 @@
 #include "gadget.hpp"
 #include "test_util.hpp"
 #include "vec.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 struct TestVecMain : Gadget {
   Vec vec;
   std::vector<uint64_t> ref;

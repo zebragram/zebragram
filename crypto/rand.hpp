@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 #include "util.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 /**
  * @brief Generate a 128 bit random number
@@ -105,4 +105,4 @@ void secure_permute(Iterator begin, Iterator end) {
   }
 }
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

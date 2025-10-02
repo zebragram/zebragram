@@ -1,5 +1,5 @@
 # gramimpl
-An implementation of PicoGRAM - a garbled RAM with communication cost of w * log N + log^3 N ciphertexts per access.
+An implementation of ZebraGRAM - a garbled RAM with communication cost of w * log N + log^3 N ciphertexts per access.
 
 ## Evaluation of Garbled Boolean Circuit
 Given a boolean circuit, a garbler can garble each gate in the circuit and send the garbled circuit (GC) to the evaluator. The evaluator evaluates every gate of the circuit in the same order as the garbler.
@@ -8,7 +8,7 @@ In this implementation, we define basic data types such as `Bit` and `Word` and 
 
 ## GRAM and Dynamic Language Translation Problem
 The key difficulty in constructing a garbled RAM is that the evaluation order cannot be determined statically. Specifically, we want a function $f_a$ to call another function $f_b$ conditionally based on the runtime value of a control wire. If the condition is unmet, no gate in $f_b$ should be evaluated.
-PicoGRAM extends the idea of Tri-state Circuit by Heath et al. and constructed an improved garbled stack to address this challenge.
+ZebraGRAM extends the idea of Tri-state Circuit by Heath et al. and constructed an improved garbled stack to address this challenge.
 
 ## Abstractions
 ### Basic Data Types
@@ -16,7 +16,7 @@ A Bit represents the garbling of a Boolean wire in the circuit. We implement XOR
 
 A Word consists of multiple bits and can be interpreted as an integer. We define bitwise operations on words as well as arithmetic operations such as addition and comparison.
 
-A SIMDWord represents the garbling of a cable in PicoGRAM. The garbler's share is a single finite field element (`BigInt`), and the evaluator's share is an array of group elements (`ECPoint`). A SIMDWord can be translated from/to a Word.
+A SIMDWord represents the garbling of a cable in ZebraGRAM. The garbler's share is a single finite field element (`BigInt`), and the evaluator's share is an array of group elements (`ECPoint`). A SIMDWord can be translated from/to a Word.
 
 ### Gadget (`gadgets/gadget.hpp`)
 A gadget is a boolean sub-circuit whose evaluation order is deterministic. As an example, each node in circuit oram tree always runs the same set of read and evict functions at every timestep. Every data object holds a pointer to a gadget that owns it. Each gadget owns a contigueous segment in the GC of the whole circuit, and can be garbled and evaluated like a normal boolean circuit. A gadget may hold states, just like a C++ struct. 
@@ -50,7 +50,7 @@ A function may also access the state variables in the gadget.
 A `SIMDFunc` is used either in the internal implementation of `Func` and or can be explicitily defined to avoid unnecessary translations between `Word` and `SIMDWord`. The interface is similar to `Func` except that the `Word`s are replaced with `SIMDWord`s in the input and output.
 
 ### Link (`gadgets/link.hpp`)
-Links are used to connect a gadget with its parent (caller) gadget. A `Link` or `SIMDLink` implements the stack and reversed stack in PicoGRAM, which takes inspiration from the oblivious compaction algorithm by Goodrich. In particular, a `SIMDLink` utilizes a novel garbling scheme based on the DDH assumption to reduce the communication cost, but may increase computational overhead due to EC operations.
+Links are used to connect a gadget with its parent (caller) gadget. A `Link` or `SIMDLink` implements the stack and reversed stack in ZebraGRAM, which takes inspiration from the oblivious compaction algorithm by Goodrich. In particular, a `SIMDLink` utilizes a novel garbling scheme based on the DDH assumption to reduce the communication cost, but may increase computational overhead due to EC operations.
 
 At each timestamp, the parent gadget may call the `update_link` method to conditionally connect itself with the child gadget based on a control bit. Then, the evaluator can perform any number of `translate` operations to convert between a `Word`/`SIMDWord` owned by the parent gadget and a `Word`/`SIMDWord` owned by the child gadget.
 

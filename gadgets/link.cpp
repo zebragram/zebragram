@@ -1,6 +1,6 @@
 #include "link.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 SIMDLink::SIMDLink(Gadget* callee) : BaseConditionalLink(callee, SIMD_COND) {}
 
 bool SIMDLink::update_link(const Bit& control, const BigInt& caller_label) {
@@ -248,6 +248,7 @@ bool Link::update_link(const Bit& control) {
   // get_caller()->dbg_check_gc_sync();
   Bit control_e = control.reveal();
   curr_bit_offset = 0;
+  curr_arith_digit_offset = 0;
   Assert_eq(control.get_mode(), mode);
   if (mode == GARBLE) {
     // just record the input
@@ -275,9 +276,9 @@ bool Link::update_link(const Bit& control) {
   return !control_e.get_value();
 }
 
-void Link::add_caller_words(const std::vector<Word>& parent_words) {
+void Link::add_caller_words(FuncInput parent_words) {
   Assert(!port_words.empty());
-  std::vector<Word>& latest_words = port_words.back();
+  FuncOutput& latest_words = port_words.back();
   if (get_mode() == GARBLE) {
     latest_words.insert(latest_words.end(), parent_words.begin(),
                         parent_words.end());
@@ -291,7 +292,7 @@ void Link::add_caller_words(const std::vector<Word>& parent_words) {
   }
 }
 
-std::vector<Word> Link::retrieve_callee_words(uint64_t num) {
+FuncOutput Link::retrieve_callee_words(uint64_t num) {
   Assert(garbled);
   Assert(get_mode() == GARBLE || get_mode() == MEASURE);
 
@@ -299,8 +300,7 @@ std::vector<Word> Link::retrieve_callee_words(uint64_t num) {
       port_words[curr_retrieved_t].begin() + curr_retrieved_word_idx;
   Assert_less(curr_retrieved_t, port_words.size());
   Assert(curr_retrieved_word_idx + num <= port_words[curr_retrieved_t].size());
-  const std::vector<Word>& output =
-      std::vector<Word>(word_begin, word_begin + num);
+  FuncInput output = std::vector<Word>(word_begin, word_begin + num);
   curr_retrieved_word_idx += num;
   if (curr_retrieved_word_idx == port_words[curr_retrieved_t].size()) {
     if (get_mode() == GARBLE) {
@@ -313,44 +313,59 @@ std::vector<Word> Link::retrieve_callee_words(uint64_t num) {
 
 void Link::clear_callee_words() { clear_and_release(port_words); }
 
-std::vector<Word> Link::translate(const std::vector<Word>& input) {
+FuncOutput Link::translate(FuncInput input) {
   Assert(is_active);
   if (input.empty()) {
     return {};
   }
   Assert(get_mode() == EVAL || get_mode() == DEBUG);
-  std::vector<Word> output = input;
+  FuncOutput output = input;
   Gadget* input_owner = input[0].get_owner();
   Assert(input_owner == caller || input_owner == callee);
   bool is_caller_to_callee = input_owner == caller;
+  Gadget* output_owner = is_caller_to_callee ? callee : caller;
 
   for (Word& word : output) {
     // the garbler cannot predict the routing behavior
     word.set_pub_g(false);
-    word.set_owner(is_caller_to_callee ? callee : caller);
+    word.set_owner(output_owner);
     if (!is_caller_to_callee) {
       word.set_pub_e(false);
     }
   }
   if (mode == EVAL) {
-    if (word_width_sum == (uint64_t)-1) {
+    if (word_width_sum == (uint32_t)-1) {
       gc.read_default(word_width_sum);
+      gc.read_default(arith_word_width_sum);
     }
+    uint32_t combined_join_material_len =
+        word_width_sum * sizeof(Label) +
+        arith_word_width_sum * ArithLabel::byte_length;
+    uint depth = log2ceil(T);
     // update the relative label
     if (is_active) {
       const Bit& control_e = controls[0];
       uint64_t tau = get_time();
       uint64_t bit_offset = curr_bit_offset;
       for (Word& word : output) {
+        Label h;
         for (uint bit_idx = 0; bit_idx < word.width(); ++bit_idx) {
-          word[bit_idx].get_label() ^=
-              Hash(control_e.get_label(), t, bit_offset++);
+          h = Hash(control_e.get_label(), t, bit_offset++);
+          word[bit_idx].get_label() ^= h;
+        }
+        if (word.has_payload()) {
+          const ArithWord& diff_h =
+              ArithWord::prng_from_label(h, word.get_payload().width());
+          if (is_caller_to_callee) {
+            word.get_payload() += diff_h;
+          } else {
+            word.get_payload() -= diff_h;
+          }
         }
       }
-      uint64_t end_bit_offset = bit_offset;
-      Assert(end_bit_offset <= word_width_sum);
+
       // route through the compaction network
-      uint depth = log2ceil(T);
+
       for (uint i = 0; i < depth; ++i) {
         const Word& curr_sum = prefix_sum[tau];
         if (i >= curr_sum.width()) {
@@ -361,30 +376,78 @@ std::vector<Word> Link::translate(const std::vector<Word>& input) {
         uint64_t index = index_calculator(i, tau);
         bit_offset = curr_bit_offset;
         if (curr_bit.get_value()) {
-          std::vector<Label> join_material(end_bit_offset - curr_bit_offset);
-          uint64_t peak_index = index * word_width_sum + curr_bit_offset;
-          gc.peak_default(join_material, peak_index);
+          std::vector<Label> join_material(output.total_bit_width());
+          std::vector<ArithLabel> arith_join_material(
+              output.total_arith_width());
+          uint64_t peak_offset =
+              index * combined_join_material_len + curr_gc_offset;
+          (gc + peak_offset).peak_default(join_material, 0);
+          peak_offset += join_material.size() * sizeof(Label);
+          if (arith_word_width_sum > 0) {
+            // peak arith labels one by one
+            for (uint j = 0; j < arith_join_material.size(); ++j) {
+              (gc + peak_offset).peak_arith_label(arith_join_material[j], j);
+              // std::cout << "Read arith label at level "<< i << " and gc
+              // offset " << (gc + peak_offset).get_offset() + j *
+              // ArithLabel::byte_length << " for join material: " <<
+              // arith_join_material[j] << std::endl;
+            }
+          }
+          uint64_t arith_bit_inner_offset = 0;
           for (Word& word : output) {
+            Label h_neg;
             for (uint bit_idx = 0; bit_idx < word.width();
                  ++bit_idx, ++bit_offset) {
-              Label h_neg =
-                  Hash((!curr_bit).get_label(), 2 * index, bit_offset);
+              h_neg = Hash((!curr_bit).get_label(), 2 * index, bit_offset);
               word[bit_idx].get_label() ^=
                   join_material[bit_offset - curr_bit_offset] ^ h_neg;
+            }
+            if (word.has_payload()) {
+              const ArithWord& h_neg_arith_word =
+                  ArithWord::prng_from_label(h_neg, word.get_payload().width());
+              ArithWord join_arith_word(output_owner);
+              join_arith_word.set_payload(
+                  arith_join_material.begin() + arith_bit_inner_offset,
+                  arith_join_material.begin() + arith_bit_inner_offset +
+                      word.get_payload().width());
+              if (is_caller_to_callee) {
+                word.get_payload() += (join_arith_word + h_neg_arith_word);
+              } else {
+                word.get_payload() -= (join_arith_word + h_neg_arith_word);
+              }
+              arith_bit_inner_offset += word.get_payload().width();
             }
           }
           tau -= (1UL << i);
         } else if (tau > 0) {
           // only Buffer
           for (Word& word : output) {
+            Label h;
             for (uint bit_idx = 0; bit_idx < word.width(); ++bit_idx) {
-              word[bit_idx].get_label() ^=
-                  Hash(curr_bit.get_label(), 2 * index + 1, bit_offset++);
+              h = Hash(curr_bit.get_label(), 2 * index + 1, bit_offset++);
+              word[bit_idx].get_label() ^= h;
+            }
+            if (word.has_payload()) {
+              const ArithWord& diff_h =
+                  ArithWord::prng_from_label(h, word.get_payload().width());
+              if (is_caller_to_callee) {
+                word.get_payload() += diff_h;
+              } else {
+                word.get_payload() -= diff_h;
+              }
             }
           }
         }
       }
-      curr_bit_offset = end_bit_offset % word_width_sum;
+      curr_bit_offset =
+          (curr_bit_offset + output.total_bit_width()) % word_width_sum;
+      curr_gc_offset = (curr_gc_offset + output.total_gc_size()) %
+                       combined_join_material_len;
+      if (arith_word_width_sum > 0) {
+        curr_arith_digit_offset =
+            (curr_arith_digit_offset + output.total_arith_width()) %
+            arith_word_width_sum;
+      }
     }
   }
   return output;
@@ -414,18 +477,19 @@ GCPtr Link::garble(const GCPtr& gc_begin) {
     Assert_eq(port_words.size(), T);
   }
   init_gc_ptr(gc_begin);
-  word_width_sum = std::accumulate(
-      port_words[0].begin(), port_words[0].end(), 0,
-      [](uint64_t sum, const Word& word) { return sum + word.width(); });
+  word_width_sum = port_words[0].total_bit_width();
+  arith_word_width_sum = port_words[0].total_arith_width();
   if (mode == MEASURE) {
 #ifdef MEASURE_STACK_COST
     measure_stack_flag = true;
 #endif
-    gc.skip_default<uint64_t>();
+    gc.skip_default<uint32_t>(2);
 #ifdef MEASURE_TSC_STACK
     global_tsc_stack_cost += tsc_stack_cost(T, word_width_sum);
 #endif
     gc.skip_label((T * depth - (1UL << depth) + 1) * word_width_sum);
+    gc.skip_arith_label((T * depth - (1UL << depth) + 1) *
+                        arith_word_width_sum);
 
 #ifdef MEASURE_STACK_COST
     measure_stack_flag = false;
@@ -433,17 +497,41 @@ GCPtr Link::garble(const GCPtr& gc_begin) {
   } else {
     // the evaluator needs to learn this to peak data
     gc.write_default(word_width_sum);
+    gc.write_default(arith_word_width_sum);
     // the language of wires joined with another wire whose language
     // hasn't been computed
-    std::vector<std::queue<std::vector<Word>>> pending_joins;
+    std::vector<std::queue<FuncOutput>> pending_joins;
     pending_joins.resize(depth);
+    // std::cout << "Garbling Link with T = " << T << ", depth = " << depth <<
+    // std::endl;
+#ifdef MAX_GADGET_TIME
+    GCPtr test_end_gc_ptr = gc;
+    bool overwrote = false;
+#ifdef TOTAL_TIME
+    // use chernoff bound to estimate the maximum number of times a gadget is
+    // called in TOTAL_TIME timesteps with high probability const double mu =
+    // (double)T * MAX_GADGET_TIME / TOTAL_TIME; const double delta = sqrt(30.0
+    // / mu); const uint64_t chernoff_bound = ceil(mu * (1 + delta)); const
+    // uint64_t threshold_time = std::min((uint64_t)MAX_GADGET_TIME,
+    // chernoff_bound);
+    const uint64_t threshold_time = chernoff_upper_bound(
+        TOTAL_TIME, MAX_GADGET_TIME, (double)TOTAL_TIME / T, -40);
+#else
+    const uint64_t threshold_time = MAX_GADGET_TIME;
+#endif
+#endif
     for (uint64_t t = 0; t < T; ++t) {
       uint64_t bit_offset = 0;
-      for (uint64_t word_idx = 0; word_idx < port_words[t].size(); ++word_idx) {
-        Word& word = port_words[t][word_idx];
+      for (Word& word : port_words[t]) {
+        Label h;
         for (uint bit_idx = 0; bit_idx < word.width(); ++bit_idx) {
-          word[bit_idx].get_label() ^=
-              Hash(controls[t].get_label(), t, bit_offset++);
+          h = Hash(controls[t].get_label(), t, bit_offset++);
+          word[bit_idx].get_label() ^= h;
+        }
+        if (word.has_payload()) {
+          const ArithWord& diff_h =
+              ArithWord::prng_from_label(h, word.get_payload().width());
+          word.get_payload() += diff_h;
         }
       }
       Assert_eq(bit_offset, word_width_sum);
@@ -454,36 +542,61 @@ GCPtr Link::garble(const GCPtr& gc_begin) {
             // we can compute a pending join
             Bit neg_s = !prefix_sum[t][i];
             Assert(!pending_joins[i].empty());
-            const std::vector<Word>& pending_join = pending_joins[i].front();
+            FuncInput pending_join = pending_joins[i].front();
             Assert_eq(pending_join.size(), port_words[t].size());
             bit_offset = 0;
             for (uint64_t word_idx = 0; word_idx < pending_join.size();
                  ++word_idx) {
-              Assert_eq(pending_join[word_idx].width(),
-                        port_words[t][word_idx].width());
-              for (uint bit_idx = 0; bit_idx < pending_join[word_idx].width();
+              const Word& pending_join_word = pending_join[word_idx];
+              const Word& port_word = port_words[t][word_idx];
+              Assert_eq(pending_join_word.width(), port_word.width());
+              Label h_neg;
+              for (uint bit_idx = 0; bit_idx < pending_join_word.width();
                    ++bit_idx) {
-                const Label& h_neg =
-                    Hash(neg_s.get_label(), 2 * index, bit_offset);
+                h_neg = Hash(neg_s.get_label(), 2 * index, bit_offset);
 
-                Label join_material =
-                    pending_join[word_idx][bit_idx].get_label() ^
-                    port_words[t][word_idx][bit_idx].get_label() ^ h_neg;
+                Label join_material = pending_join_word[bit_idx].get_label() ^
+                                      port_word[bit_idx].get_label() ^ h_neg;
                 gc.write_label(join_material);
-
                 ++bit_offset;
               }
+              if (port_word.has_payload()) {
+                Assert(pending_join_word.has_payload());
+                ArithWord h_neg_arith_word = ArithWord::prng_from_label(
+                    h_neg, port_word.get_payload().width());
+                // TODO: check if should reverse
+                const ArithWord& arith_join_material =
+                    pending_join_word.get_payload() - port_word.get_payload() -
+                    h_neg_arith_word;
+                for (uint k = 0; k < arith_join_material.width(); ++k) {
+                  // std::cout << "Writing arith label at level " << i << " and
+                  // gc offset " << gc.get_offset() << "for join material: " <<
+                  // arith_join_material.payloads[k] << std::endl;
+                  gc.write_arith_label(arith_join_material.payloads[k]);
+                }
+              }
             }
-
             bit_offset = 0;
             for (uint64_t word_idx = 0; word_idx < pending_join.size();
                  ++word_idx) {
-              for (uint bit_idx = 0; bit_idx < pending_join[word_idx].width();
+              Label h =
+                  Hash(prefix_sum[t][i].get_label(), 2 * index + 1, bit_offset);
+              Word& port_word = port_words[t][word_idx];
+              const Word& pending_join_word = pending_join[word_idx];
+              Assert_eq(pending_join_word.width(), port_word.width());
+              for (uint bit_idx = 0; bit_idx < pending_join_word.width();
                    ++bit_idx) {
-                const Label& h = Hash(prefix_sum[t][i].get_label(),
-                                      2 * index + 1, bit_offset);
-                port_words[t][word_idx][bit_idx].get_label() ^= h;
+                h = Hash(prefix_sum[t][i].get_label(), 2 * index + 1,
+                         bit_offset);
+                port_word[bit_idx].get_label() ^= h;
                 ++bit_offset;
+              }
+              if (port_word.has_payload()) {
+                Assert_eq(pending_join_word.get_payload().width(),
+                          port_word.get_payload().width());
+                const ArithWord& diff_h = ArithWord::prng_from_label(
+                    h, port_word.get_payload().width());
+                port_word.get_payload() += diff_h;
               }
             }
 
@@ -495,14 +608,37 @@ GCPtr Link::garble(const GCPtr& gc_begin) {
           pending_joins[i].push(port_words[t]);
         }
       }
+#ifdef MAX_GADGET_TIME
+      if (t == threshold_time) {
+        test_end_gc_ptr = get_gc();
+        overwrote = true;
+      }
+#endif
+#ifdef PRINT_PROGRESS_GRANULARITY
+      uint64_t curr_gc_offset = get_gc().get_offset();
+#ifdef MAX_GADGET_TIME
+      curr_gc_offset += overwritten_bytes;
+#endif
+      print_curr_gc_offset(curr_gc_offset);
+#endif
     }
-    // Assert(pending_joins.empty());
+
+#ifdef MAX_GADGET_TIME
+    if (overwrote) {
+      uint64_t local_overwritten_bytes =
+          get_gc().get_offset() - test_end_gc_ptr.get_offset();
+      overwritten_bytes += local_overwritten_bytes;
+      this->gc.rewind_write(local_overwritten_bytes);
+    }
+#endif
+    // std::cout << "Arith material gc offset ends at " << gc.get_offset() <<
+    // std::endl; Assert(pending_joins.empty());
     clear_and_release(pending_joins);
     // free the memory
     clear_and_release(prefix_sum);
     clear_and_release(controls);
   }
-  for (std::vector<Word>& words : port_words) {
+  for (FuncOutput& words : port_words) {
     for (uint64_t word_idx = 0; word_idx < words.size(); ++word_idx) {
       // the garbler cannot predict the routing behavior
       words[word_idx].set_pub_g(false);
@@ -522,4 +658,4 @@ uint64_t BaseConditionalLink::index_calculator(uint row, uint64_t col) {
       prev_pow2 * (log_col_group - 2) + 1 + log_col_group * (col - prev_pow2);
   return precede_col_group + (uint64_t)row;
 }
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

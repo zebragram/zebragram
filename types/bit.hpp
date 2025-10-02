@@ -5,7 +5,7 @@
 #include "key_manager.hpp"
 #include "util.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 struct GCPtr;
 /**
@@ -194,4 +194,4 @@ struct Bit : DataType {
 
   void print_label() const { std::cout << label << std::endl; }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

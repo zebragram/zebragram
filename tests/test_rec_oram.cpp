@@ -1,6 +1,6 @@
 #include "rec_oram.hpp"
 #include "test_util.hpp"
-using namespace PicoGRAM;
+using namespace ZebraGRAM;
 struct RecORAMMain : Gadget {
   RecursiveORAM oram;
   uint addr_width;
@@ -35,7 +35,7 @@ struct RecORAMMain : Gadget {
               uint64_t simd_link_threshold = 8,
               uint64_t linear_oram_threshold = 4)
       : Gadget(mode, T),
-        oram(this, memory_space, word_width, T, simd_link_threshold,
+        oram(this, memory_space, word_width, 0, T, simd_link_threshold,
              linear_oram_threshold),
         addr_width(log2ceil(memory_space)),
         word_width(word_width),
@@ -90,10 +90,10 @@ struct RecORAMInitMain : Gadget {
   };
   DEFINE_FUNC(main, {}, main_func);
   RecORAMInitMain(uint64_t T, Mode mode, uint memory_space, uint word_width,
-                  uint64_t simd_link_threshold = 8,
+                  uint64_t simd_link_threshold = 16,
                   uint64_t linear_oram_threshold = 4)
       : Gadget(mode, T),
-        oram(this, memory_space, word_width, T, simd_link_threshold,
+        oram(this, memory_space, word_width, 0, T, simd_link_threshold,
              linear_oram_threshold),
         addr_width(log2ceil(memory_space)),
         word_width(word_width),
@@ -105,7 +105,6 @@ struct RecORAMInitMain : Gadget {
     set_name("CircuitORAMInitMain");
   }
 };
-
 
 TEST(RecORAM, RandDbgTest) {
   test_gadget_dbg<RecORAMMain>(POW2, {512, 512}, 64, 8);
@@ -124,7 +123,6 @@ TEST(RecORAM, MeasureNonSIMDMedium) {
   GTEST_SKIP();
   measure_gadget_gc<RecORAMMain>(8192, 4096, 32, UINT32_MAX, 512);
 }
-
 
 TEST(RecORAM, TestMeasureCorrectness) {
   int seed = time(0);
@@ -160,7 +158,6 @@ TEST(RecORAM, RandInitTest) {
   test_gadget<RecORAMInitMain>(ANY, {1, 128}, 1024 * 1024 * 8, 32, 8);
 }
 
-
 TEST(RecORAM, PerfSIMDInitSmall) {
   test_gadget_with_workers<RecORAMInitMain>(ANY, {512, 512}, 1UL << 30, 4, 512,
                                             32, 32, 512);
@@ -184,13 +181,12 @@ TEST(RecORAM, PerfSIMDMedium8threads) {
 /* ================== Performance tests in paper ================== */
 // Warning: 1TB memory required to run the largest benchmark
 // alternatively, change STORAGE_TYPE to DISK in global.hpp
-// measure PicoGRAM communication
+// measure ZebraGRAM communication
 TEST(RecORAM, IncrPerfSIMDCommCost) {
   for (uint64_t N = 1024; N <= (1UL << 24); N *= 2) {
     measure_gadget_gc<RecORAMMain>(N, N, 64, 32, 512);
   }
 }
-
 
 // Picogram perf
 TEST(RecORAM, IncrPerfSIMD8threads) {
@@ -202,7 +198,7 @@ TEST(RecORAM, IncrPerfSIMD8threads) {
   }
 }
 
-// the PicoGRAM no SIMD baseline communication
+// the ZebraGRAM no SIMD baseline communication
 TEST(RecORAM, IncrPerfNonSIMDCommCost) {
   for (uint64_t N = 1024; N <= (1UL << 24); N *= 2) {
     measure_gadget_gc<RecORAMMain>(N, N, 64, UINT32_MAX, 512);

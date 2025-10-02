@@ -1,0 +1,71 @@
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *Mod2Ctx*Bench*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Mod2CtxTest
+[ RUN      ] Mod2CtxTest.Bench
+Garbler Keygen time: 13.5943 s
+Garble init done.
+Eval precompute time: 506.727 s
+Garble mod2 time for 1000 rounds: 1.88026 s, avg: 1.88026 ms
+Eval mod2 time for 1000 rounds: 4.4957 s, avg: 4.4957 ms
+[       OK ] Mod2CtxTest.Bench (534507 ms)
+[----------] 1 test from Mod2CtxTest (534507 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (534507 ms total)
+[  PASSED  ] 1 test.
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *DecomposeAll*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Mod2CtxTest
+[ RUN      ] Mod2CtxTest.DecomposeAll
+T: 1
+Before garbling: 
+After creating gadget: 
+Decompose_all time: 9.02017 s
+Garbled 2140160 bytes so far, current time: Thu Oct  2 03:08:26 2025
+GC used for testing: 2.0410 MB
+Actual GC used: 2.0410 MB
+garbling time: 22941 ms
+avg time per time step: 22941 ms
+parallel time: 0 ms
+After garbling: 
+Decompose_all time: 19.5829 s
+eval time: 526779 ms
+avg time per time step: 526779 ms
+parallel time: 0 ms
+[       OK ] Mod2CtxTest.DecomposeAll (549727 ms)
+[----------] 1 test from Mod2CtxTest (549727 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (549727 ms total)
+[  PASSED  ] 1 test.
+Running main() from /home/klxia/arithmetic/picogram/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = *DecomposeAll*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Mod2CtxTest
+[ RUN      ] Mod2CtxTest.DecomposeAll
+T: 1
+Before garbling: 
+After creating gadget: 
+Decompose_all time: 33.2791 s
+Garbled 8560640 bytes so far, current time: Thu Oct  2 04:04:12 2025
+GC used for testing: 8.1640 MB
+Actual GC used: 8.1640 MB
+garbling time: 47057 ms
+avg time per time step: 47057 ms
+parallel time: 0 ms
+After garbling: 
+Decompose_all time: 73.9269 s
+eval time: 579652 ms
+avg time per time step: 579652 ms
+parallel time: 0 ms
+[       OK ] Mod2CtxTest.DecomposeAll (626717 ms)
+[----------] 1 test from Mod2CtxTest (626718 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (626718 ms total)
+[  PASSED  ] 1 test.

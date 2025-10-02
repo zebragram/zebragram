@@ -3,7 +3,7 @@
 #include "global.hpp"
 #include "io_channel_impl.hpp"
 
-namespace PicoGRAM::Channel {
+namespace ZebraGRAM::Channel {
 
 void ChannelType::send_data(const void* data, uint64_t size) {
   switch (type) {
@@ -63,4 +63,4 @@ int close(int fid) {
   return channel_manager.delete_channel(fid);
 }
 
-}  // namespace PicoGRAM::Channel
+}  // namespace ZebraGRAM::Channel

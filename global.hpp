@@ -30,9 +30,8 @@
 #ifndef USE_EMP_CHANNEL
 
 // enable this flag accelerates the measure mode
-// however, correctness is guaranteed only for our use cases and its not compatible
-// with the EMP-Toolkit
-#define FAST_MEASURE 1
+// however, correctness is guaranteed only for our use cases and its not
+// compatible with the EMP-Toolkit #define FAST_MEASURE 1
 
 // enable this flag to measure the communication cost from stack in measure mode
 #define MEASURE_STACK_COST 1
@@ -40,9 +39,21 @@
 // if this flag is enabled, the measure mode will also simulate the case where
 // we replace all the non-simd stack with the stack in the work of TSC #define
 // #define MEASURE_TSC_STACK 1
+
+// For testing, we don't increment the gc_ptr when a gadget is garbled
+// more than 200 times. Since the evaluator only makes 300 accesses to the ORAM.
+// We let the next gadget to overwrite the previous data. This trick saves
+// memory.
+#define MAX_GADGET_TIME 200
+// #define TOTAL_TIME 524288
+// print the progress of garbling every PRINT_PROGRESS_GRANULARITY bytes
+#define PRINT_PROGRESS_GRANULARITY (1UL << 32)
+#ifdef PRINT_PROGRESS_GRANULARITY
+// #define PRINT_MEMORY_USE 1
+#endif
 #endif
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief The mode of the program
  *
@@ -71,4 +82,4 @@ enum StorageType {
   MEMORY,         // works for multiple processes that share file descriptors
   DISK,
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

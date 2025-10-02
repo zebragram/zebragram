@@ -2,9 +2,10 @@
 #include <algorithm>
 #include <vector>
 
+#include "arith_word.hpp"
 #include "bit.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief A data type that represents a word, which is a sequence of bits. A
  * word < 64 bits can also represent an unsigned integer.
@@ -20,6 +21,8 @@ struct Word : DataType {
   // addition. If max_value is UINT64_MAX, the value is not limited. Notice that
   // the max value has to be agreed by both the garbler and the evaluator
   uint64_t max_value = 0;
+
+  ArithWord payload;
 
   /**
    * @brief A helper function to get the maximum value of a word with a given
@@ -47,9 +50,11 @@ struct Word : DataType {
   Word(Gadget* owner, uint len, uint64_t max_value = UINT64_MAX)
       : DataType(owner),
         bits(len, Bit::constant(owner, 0)),
-        max_value(default_max_value(len, max_value)) {}
+        max_value(default_max_value(len, max_value)),
+        payload(owner) {}
 
-  explicit Word(const Bit& bit) : DataType(bit.get_owner()), bits({bit}) {
+  explicit Word(const Bit& bit)
+      : DataType(bit.get_owner()), bits({bit}), payload(owner) {
     max_value = 1;
   }
 
@@ -267,6 +272,9 @@ struct Word : DataType {
     Assert_eq(src.width(), dst.width());
     for (uint i = 0; i < src.width(); ++i) {
       Bit::join(src.bits[i], dst.bits[i]);
+    }
+    if (src.has_payload()) {
+      ArithWord::join(src.get_payload(), dst.get_payload());
     }
   }
 
@@ -648,6 +656,7 @@ struct Word : DataType {
     word0.max_value = std::max(word0.max_value, word1.max_value);
   }
 
+  // Notice that the function does not swap the payload!
   static void cond_swap(const Bit& control, Word& word0, Word& word1) {
     uint max_width = std::max(word0.width(), word1.width());
     if (word0.width() < max_width) {
@@ -790,6 +799,7 @@ struct Word : DataType {
     for (Bit& bit : bits) {
       bit.set_owner(owner);
     }
+    payload.set_owner(owner);
   }
 
   uint64_t get_max_value() const { return max_value; }
@@ -797,6 +807,15 @@ struct Word : DataType {
   void set_max_value(uint64_t max_value) {
     this->max_value = default_max_value(width(), max_value);
   }
+
+  ArithWord& get_payload() { return payload; }
+  const ArithWord& get_payload() const { return payload; }
+  void set_payload(const ArithWord& payload) {
+    Assert(payload.get_owner() == this->get_owner());
+    this->payload = payload;
+  }
+
+  bool has_payload() const { return payload.width() != 0; }
 
   static uint64_t sum_width(const std::vector<Word>& words) {
     return std::accumulate(
@@ -856,4 +875,4 @@ struct WordMetaData : DataType {
   Word to_word() const { return to_word(*this); }
 };
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

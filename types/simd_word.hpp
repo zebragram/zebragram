@@ -7,9 +7,9 @@
 #include "lock.hpp"
 #include "word.hpp"
 
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
- * @brief The garbling of cable in PicoGRAM, i.e., a sequence of bits
+ * @brief The garbling of cable in ZebraGRAM, i.e., a sequence of bits
  * garbled with a single local language.
  *
  */
@@ -453,4 +453,4 @@ struct SIMDWord : DataType {
     }
   }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

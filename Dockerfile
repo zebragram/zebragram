@@ -13,6 +13,10 @@ RUN apt-get update && apt-get install -y \
     libboost-stacktrace-dev \
     libssl-dev \
     libomp-dev \
+    libgmp-dev \
+    libmpfr-dev \
+    autoconf \
+    libtool-bin \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/emp-toolkit/emp-tool.git --branch master && \
@@ -22,6 +26,15 @@ RUN git clone https://github.com/emp-toolkit/emp-tool.git --branch master && \
     make install && \
     cd .. && \
     rm -rf emp-tool  # Optional cleanup
+
+RUN git clone https://github.com/flintlib/flint.git && cd flint && \
+./bootstrap.sh && \
+./configure && \
+make && \
+make install && \
+make examples && \
+cd .. && \ 
+rm -rf flint  # Optional cleanup
 
 # Set working directory
 WORKDIR /picogram

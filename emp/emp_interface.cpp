@@ -4,7 +4,7 @@
 
 #include "channel_util.hpp"
 #include "rec_oram.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 
 Label to_label(const BitType& raw_bit) {
   Label label;
@@ -64,7 +64,7 @@ struct ORAMGadget : Gadget {
     return oram.read_or_write(addr, is_write, new_data);
   }
   ORAMGadget(Mode mode, uint64_t T, uint memory_space, uint word_width)
-      : Gadget(mode, T), oram(this, memory_space, word_width, T) {}
+      : Gadget(mode, T), oram(this, memory_space, word_width, 0, T) {}
 };
 
 ORAMType::ORAMType(uint32_t address_width, uint32_t word_width,
@@ -256,4 +256,4 @@ ORAMType::~ORAMType() {
   internal_oram = nullptr;
 }
 
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

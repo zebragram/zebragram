@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "util.hpp"
-namespace PicoGRAM {
+namespace ZebraGRAM {
 /**
  * @brief Data block used when initializing the ORAM
  *
@@ -648,4 +648,4 @@ struct CircuitORAMRef {
 
   ~CircuitORAMRef() { delete oram; }
 };
-}  // namespace PicoGRAM
+}  // namespace ZebraGRAM

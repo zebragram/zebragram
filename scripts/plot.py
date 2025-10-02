@@ -109,7 +109,7 @@ plt.plot(
     np.log2(T),
     picogram,
     marker="d",
-    label="PicoGRAM",
+    label="ZebraGRAM",
     color="red",
 )
 
@@ -179,7 +179,7 @@ plt.bar(
 )
 
 # name the bars
-plt.xticks(np.arange(4), ["TSC", "NanoGRAM", "PicoGRAM\nno-SIMD", "PicoGRAM"])
+plt.xticks(np.arange(4), ["TSC", "NanoGRAM", "ZebraGRAM\nno-SIMD", "ZebraGRAM"])
 
 
 plt.ylabel("Cost per Access (MB)", fontsize=12)
@@ -378,7 +378,7 @@ plt.plot(bandwidths, circuit_oram_interactive_runtime, label="Interactive")
 plt.plot(bandwidths, tsc_runtime, label="TSC")
 plt.plot(bandwidths, nanogram_runtime, label="NanoGRAM", color="plum")
 # plt.plot(bandwidths, pico_no_simd_compact_runtime, label="TSC + Compact")
-plt.plot(bandwidths, picogram_runtime, label="PicoGRAM", color="red")
+plt.plot(bandwidths, picogram_runtime, label="ZebraGRAM", color="red")
 # dashed line for picogram adaptive
 plt.plot(
     bandwidths,
